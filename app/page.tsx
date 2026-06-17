@@ -93,6 +93,9 @@ export default function LoginPage() {
         <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 24 }}>
           © 2026 Gestão Açaí Tia Maria Pro · Todos os direitos reservados
         </p>
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 4 }}>
+          Desenvolvido por <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>Manga Consulting</span>
+        </p>
       </div>
     </div>
   )

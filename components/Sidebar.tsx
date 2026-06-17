@@ -119,6 +119,12 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen = false, isMob
           <span style={{ fontSize: 17 }}>🚪</span>
           {!collapsed && <span style={{ fontSize: 13 }}>Sair</span>}
         </button>
+        {!collapsed && (
+          <div style={{ marginTop: 10, fontSize: 10, color: 'rgba(255,255,255,0.25)', textAlign: 'center', lineHeight: 1.4 }}>
+            Desenvolvido por<br />
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>Manga Consulting</span>
+          </div>
+        )}
       </div>
     </aside>
   )
