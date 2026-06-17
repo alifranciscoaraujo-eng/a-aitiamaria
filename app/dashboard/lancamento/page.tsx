@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import Topbar from '@/components/Topbar'
 import { loadEntries, saveEntries, type DailyEntry } from '@/lib/dailyData'
@@ -20,10 +20,10 @@ function calc(f: ReturnType<typeof empty>): DailyEntry {
 }
 
 function R(v: number) {
-  return v === 0 ? '—' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+  return v === 0 ? 'â€”' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 }
 function N(v: number, dec = 2) {
-  return v === 0 ? '—' : v.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+  return v === 0 ? 'â€”' : v.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec })
 }
 
 const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
@@ -32,7 +32,7 @@ function AcaiIcon() {
   return (
     <img
       src="/acai-icon.png"
-      alt="açaí"
+      alt="aÃ§aÃ­"
       width={30}
       height={30}
       style={{ objectFit: 'contain' }}
@@ -67,7 +67,7 @@ export default function LancamentoDiarioPage() {
       const [d, m, y] = s.split('/')
       return `${d}/${m}/20${y}`
     }
-    // M/D/YY or M/D/YYYY (Excel US format — this planilha uses 1/2/26)
+    // M/D/YY or M/D/YYYY (Excel US format â€” this planilha uses 1/2/26)
     if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(s)) {
       const parts = s.split('/')
       const m = parts[0].padStart(2, '0')
@@ -94,15 +94,15 @@ export default function LancamentoDiarioPage() {
     // Format: "R$ 4,620.00" (US) or "R$ 4.620,00" (BR)
     const s = String(v ?? '').replace(/R\$\s*/g, '').replace(/\s/g, '').trim()
     if (!s) return 0
-    // If has both . and , — determine which is decimal
+    // If has both . and , â€” determine which is decimal
     if (s.includes('.') && s.includes(',')) {
       const lastDot = s.lastIndexOf('.')
       const lastComma = s.lastIndexOf(',')
       if (lastDot > lastComma) {
-        // US format: 4,620.00 → remove commas
+        // US format: 4,620.00 â†’ remove commas
         return parseFloat(s.replace(/,/g, '')) || 0
       } else {
-        // BR format: 4.620,00 → remove dots, replace comma
+        // BR format: 4.620,00 â†’ remove dots, replace comma
         return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0
       }
     }
@@ -128,9 +128,9 @@ export default function LancamentoDiarioPage() {
       const cxs = cleanNum(cols[1])
       const valor_total = cleanNum(cols[2])
       const litros = cleanNum(cols[3])
-      // Cols 4,5 are auto-calc (litros/cx, custo/litro) — skip
+      // Cols 4,5 are auto-calc (litros/cx, custo/litro) â€” skip
       const valor_litros = cleanNum(cols[6])
-      // Col 7 = lucro (auto), col 8 = media (auto) — skip
+      // Col 7 = lucro (auto), col 8 = media (auto) â€” skip
       const venda_acai = cleanNum(cols[9])
       const farinha_tapioca = cleanNum(cols[10])
       const camarao = cleanNum(cols[11])
@@ -156,7 +156,7 @@ export default function LancamentoDiarioPage() {
       saveEntries(next)
       return next
     })
-    setImportMsg({ type: 'ok', text: `✅ ${imported.length} registros importados/atualizados com sucesso!` })
+    setImportMsg({ type: 'ok', text: `âœ… ${imported.length} registros importados/atualizados com sucesso!` })
     setTimeout(() => setImportMsg(null), 6000)
   }
 
@@ -176,11 +176,11 @@ export default function LancamentoDiarioPage() {
             const data = new Uint8Array(ev.target?.result as ArrayBuffer)
             const wb = XLSX.read(data, { type: 'array' })
             const ws = wb.Sheets[wb.SheetNames[0]]
-            // raw:true → números como números, datas como serial do Excel
+            // raw:true â†’ nÃºmeros como nÃºmeros, datas como serial do Excel
             const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' }) as unknown[][]
             applyImport(parseRows(rows))
           } catch {
-            setImportMsg({ type: 'err', text: 'Erro ao ler o arquivo Excel. Verifique se não está corrompido.' })
+            setImportMsg({ type: 'err', text: 'Erro ao ler o arquivo Excel. Verifique se nÃ£o estÃ¡ corrompido.' })
           }
         }
         reader.readAsArrayBuffer(file)
@@ -238,7 +238,7 @@ export default function LancamentoDiarioPage() {
   }
 
   function handleDelete(id: string) {
-    if (!confirm('Confirmar exclusão deste registro?')) return
+    if (!confirm('Confirmar exclusÃ£o deste registro?')) return
     setEntries(prev => {
       const next = prev.filter(x => x.id !== id)
       saveEntries(next)
@@ -297,28 +297,28 @@ export default function LancamentoDiarioPage() {
 
   const cols = [
     'DATA', 'CXS', 'VALOR TOTAL', 'LITROS', 'L/CX', 'CUSTO/L',
-    'VALOR LITROS', 'LUCRO TOTAL', 'MÉDIA/CX', 'VENDA AÇAÍ',
-    'FARINHA/TAP.', 'CAMARÃO', 'GASTOS', ''
+    'VALOR LITROS', 'LUCRO TOTAL', 'MÃ‰DIA/CX', 'VENDA AÃ‡AÃ',
+    'FARINHA/TAP.', 'CAMARÃƒO', 'GASTOS', ''
   ]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Lançamento Diário" />
+      <Topbar title="LanÃ§amento DiÃ¡rio" />
       <div style={{ padding: 24 }}>
 
         {/* KPI strip */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
-            { icon: '📅', label: 'Dias c/ produção', value: `${totals.dias_producao}`, sub: `de ${filtered.length} dias` },
-            { icon: '📦', label: 'Total Caixas', value: N(totals.cxs, 1) },
-            { icon: '🫐', label: 'Total Litros', value: `${N(totals.litros, 0)}L` },
-            { icon: '💵', label: 'Custo Total Açaí', value: R(totals.valor_total), color: '#D32F2F' },
-            { icon: '🛒', label: 'Venda Açaí (cx)', value: R(totals.venda_acai), color: '#2E7D32' },
-            { icon: '💰', label: 'Lucro Total', value: R(totals.lucro_total), color: '#2E7D32' },
-            { icon: '🌾', label: 'Farinha/Tapioca', value: R(totals.farinha_tapioca) },
-            { icon: '🦐', label: 'Camarão', value: R(totals.camarao) },
-            { icon: '📋', label: 'Gastos', value: R(totals.gastos), color: '#D32F2F' },
-            { icon: '📈', label: 'Receita Total', value: R(totals.receita_total), color: '#5B145F' },
+            { icon: 'ðŸ“…', label: 'Dias c/ produÃ§Ã£o', value: `${totals.dias_producao}`, sub: `de ${filtered.length} dias` },
+            { icon: 'ðŸ“¦', label: 'Total Caixas', value: N(totals.cxs, 1) },
+            { icon: 'ðŸ«', label: 'Total Litros', value: `${N(totals.litros, 0)}L` },
+            { icon: 'ðŸ’µ', label: 'Custo Total AÃ§aÃ­', value: R(totals.valor_total), color: '#D32F2F' },
+            { icon: 'ðŸ›’', label: 'Venda AÃ§aÃ­ (cx)', value: R(totals.venda_acai), color: '#2E7D32' },
+            { icon: 'ðŸ’°', label: 'Lucro Total', value: R(totals.lucro_total), color: '#2E7D32' },
+            { icon: 'ðŸŒ¾', label: 'Farinha/Tapioca', value: R(totals.farinha_tapioca) },
+            { icon: 'ðŸ¦', label: 'CamarÃ£o', value: R(totals.camarao) },
+            { icon: 'ðŸ“‹', label: 'Gastos', value: R(totals.gastos), color: '#D32F2F' },
+            { icon: 'ðŸ“ˆ', label: 'Receita Total', value: R(totals.receita_total), color: '#5B145F' },
           ].map((c, i) => (
             <div key={i} className="card" style={{ textAlign: 'center', padding: '14px 10px' }}>
               <div style={{ fontSize: 22, marginBottom: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: 30 }}>
@@ -340,7 +340,7 @@ export default function LancamentoDiarioPage() {
           <div style={{ display: 'flex', gap: 3, background: '#F4E8F7', padding: 3, borderRadius: 10 }}>
             {(['tabela', 'graficos', 'resumo'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, background: tab === t ? 'white' : 'transparent', color: tab === t ? '#5B145F' : '#9CA3AF', transition: 'all 0.18s' }}>
-                {t === 'tabela' ? '📋 Tabela' : t === 'graficos' ? '📊 Gráficos' : '📈 Resumo'}
+                {t === 'tabela' ? 'ðŸ“‹ Tabela' : t === 'graficos' ? 'ðŸ“Š GrÃ¡ficos' : 'ðŸ“ˆ Resumo'}
               </button>
             ))}
           </div>
@@ -351,7 +351,7 @@ export default function LancamentoDiarioPage() {
             {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
 
-          <input placeholder="🔍 Buscar data (dd/mm/yyyy)" value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '7px 12px', border: '1.5px solid #E5E7EB', borderRadius: 9, fontSize: 12, minWidth: 200 }} />
+          <input placeholder="ðŸ” Buscar data (dd/mm/yyyy)" value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '7px 12px', border: '1.5px solid #E5E7EB', borderRadius: 9, fontSize: 12, minWidth: 200 }} />
 
           <div style={{ flex: 1 }} />
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.txt,.tsv" style={{ display: 'none' }} onChange={handleImportFile} />
@@ -361,9 +361,9 @@ export default function LancamentoDiarioPage() {
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F9F4FB' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'white' }}
           >
-            📤 Importar Planilha
+            ðŸ“¤ Importar Planilha
           </button>
-          <button className="btn-primary" onClick={openNew}>+ Novo Lançamento</button>
+          <button className="btn-primary" onClick={openNew}>+ Novo LanÃ§amento</button>
         </div>
 
         {importMsg && (
@@ -378,15 +378,15 @@ export default function LancamentoDiarioPage() {
             <div style={{ background: 'white', borderRadius: 20, padding: 28, maxWidth: 720, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 80px rgba(0,0,0,0.3)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 800, color: '#3B0A45', margin: 0 }}>
-                  {editEntry ? `✏️ Editar — ${editEntry.data}` : '📝 Novo Lançamento Diário'}
+                  {editEntry ? `âœï¸ Editar â€” ${editEntry.data}` : 'ðŸ“ Novo LanÃ§amento DiÃ¡rio'}
                 </h3>
-                <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#9CA3AF' }}>×</button>
+                <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#9CA3AF' }}>Ã—</button>
               </div>
 
               <form onSubmit={handleSave}>
-                {/* Section: Produção */}
+                {/* Section: ProduÃ§Ã£o */}
                 <div style={{ background: '#F4E8F7', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#5B145F', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>🫐 Produção</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#5B145F', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>ðŸ« ProduÃ§Ã£o</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                     <Field label="Data" type="text" placeholder="DD/MM/AAAA" value={form.data} onChange={v => setF('data', v)} required />
                     <Field label="Caixas (CXS)" type="number" placeholder="0" value={form.cxs || ''} onChange={v => setF('cxs', Number(v))} step="0.5" />
@@ -399,10 +399,10 @@ export default function LancamentoDiarioPage() {
                 {(form.cxs > 0 || form.litros > 0) && (
                   <div style={{ display: 'flex', gap: 10, marginBottom: 16, background: '#EDE7F6', borderRadius: 12, padding: '12px 16px' }}>
                     {[
-                      ['Litros/Cx', preview.litros_cx > 0 ? N(preview.litros_cx) : '—'],
-                      ['Custo/Litro', preview.custo_litro > 0 ? R(preview.custo_litro) : '—'],
-                      ['Lucro Total', preview.lucro_total !== 0 ? R(preview.lucro_total) : '—'],
-                      ['Média/Cx', preview.media_lucro_cx > 0 ? R(preview.media_lucro_cx) : '—'],
+                      ['Litros/Cx', preview.litros_cx > 0 ? N(preview.litros_cx) : 'â€”'],
+                      ['Custo/Litro', preview.custo_litro > 0 ? R(preview.custo_litro) : 'â€”'],
+                      ['Lucro Total', preview.lucro_total !== 0 ? R(preview.lucro_total) : 'â€”'],
+                      ['MÃ©dia/Cx', preview.media_lucro_cx > 0 ? R(preview.media_lucro_cx) : 'â€”'],
                     ].map(([l, v]) => (
                       <div key={l} style={{ flex: 1, textAlign: 'center' }}>
                         <div style={{ fontSize: 10, color: '#7A2E83', fontWeight: 700, marginBottom: 2 }}>{l}</div>
@@ -414,18 +414,18 @@ export default function LancamentoDiarioPage() {
 
                 {/* Section: Vendas */}
                 <div style={{ background: '#E8F5E9', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#2E7D32', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>💰 Receitas</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#2E7D32', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>ðŸ’° Receitas</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                     <Field label="Valor Litros (R$)" type="number" placeholder="0,00" value={form.valor_litros || ''} onChange={v => setF('valor_litros', Number(v))} step="0.01" />
-                    <Field label="Venda Açaí (R$)" type="number" placeholder="0,00" value={form.venda_acai || ''} onChange={v => setF('venda_acai', Number(v))} step="0.01" />
+                    <Field label="Venda AÃ§aÃ­ (R$)" type="number" placeholder="0,00" value={form.venda_acai || ''} onChange={v => setF('venda_acai', Number(v))} step="0.01" />
                     <Field label="Farinha/Tapioca (R$)" type="number" placeholder="0,00" value={form.farinha_tapioca || ''} onChange={v => setF('farinha_tapioca', Number(v))} step="0.01" />
-                    <Field label="Camarão (R$)" type="number" placeholder="0,00" value={form.camarao || ''} onChange={v => setF('camarao', Number(v))} step="0.01" />
+                    <Field label="CamarÃ£o (R$)" type="number" placeholder="0,00" value={form.camarao || ''} onChange={v => setF('camarao', Number(v))} step="0.01" />
                   </div>
                 </div>
 
                 {/* Section: Gastos */}
                 <div style={{ background: '#FFF8E1', borderRadius: 12, padding: '14px 16px', marginBottom: 20 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#F57F17', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>📋 Gastos do Dia</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#F57F17', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>ðŸ“‹ Gastos do Dia</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                     <Field label="Gastos (R$)" type="number" placeholder="0,00" value={form.gastos || ''} onChange={v => setF('gastos', Number(v))} step="0.01" />
                   </div>
@@ -433,7 +433,7 @@ export default function LancamentoDiarioPage() {
 
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center', padding: '13px' }}>
-                    💾 {editEntry ? 'Salvar Alterações' : 'Salvar Lançamento'}
+                    ðŸ’¾ {editEntry ? 'Salvar AlteraÃ§Ãµes' : 'Salvar LanÃ§amento'}
                   </button>
                   <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
                 </div>
@@ -463,24 +463,24 @@ export default function LancamentoDiarioPage() {
                       onMouseEnter={e => (e.currentTarget.style.background = '#F9F4FB')}
                       onMouseLeave={e => (e.currentTarget.style.background = semProd ? '#FFF8E1' : ri % 2 === 0 ? 'white' : '#FAFAFA')}>
                       <td style={{ padding: '8px 10px', fontWeight: 700, color: '#3B0A45', whiteSpace: 'nowrap' }}>{row.data}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: semProd ? 400 : 700, color: semProd ? '#9CA3AF' : '#374151' }}>{row.cxs > 0 ? N(row.cxs, 1) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#D32F2F', fontWeight: 600 }}>{row.valor_total > 0 ? R(row.valor_total) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#5B145F', fontWeight: 600 }}>{row.litros > 0 ? `${N(row.litros, 1)}L` : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: baixoRend ? '#D32F2F' : '#374151' }}>{row.litros_cx > 0 ? N(row.litros_cx) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#374151' }}>{row.custo_litro > 0 ? R(row.custo_litro) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#7A2E83', fontWeight: 600 }}>{row.valor_litros > 0 ? R(row.valor_litros) : '—'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: semProd ? 400 : 700, color: semProd ? '#9CA3AF' : '#374151' }}>{row.cxs > 0 ? N(row.cxs, 1) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#D32F2F', fontWeight: 600 }}>{row.valor_total > 0 ? R(row.valor_total) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#5B145F', fontWeight: 600 }}>{row.litros > 0 ? `${N(row.litros, 1)}L` : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: baixoRend ? '#D32F2F' : '#374151' }}>{row.litros_cx > 0 ? N(row.litros_cx) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#374151' }}>{row.custo_litro > 0 ? R(row.custo_litro) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#7A2E83', fontWeight: 600 }}>{row.valor_litros > 0 ? R(row.valor_litros) : 'â€”'}</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: row.lucro_total > 0 ? '#2E7D32' : row.lucro_total < 0 ? '#D32F2F' : '#9CA3AF' }}>
-                        {row.lucro_total !== 0 ? R(row.lucro_total) : '—'}
-                        {destaque && <span style={{ marginLeft: 4, fontSize: 10 }}>⭐</span>}
+                        {row.lucro_total !== 0 ? R(row.lucro_total) : 'â€”'}
+                        {destaque && <span style={{ marginLeft: 4, fontSize: 10 }}>â­</span>}
                       </td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#374151' }}>{row.media_lucro_cx > 0 ? R(row.media_lucro_cx) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#2E7D32', fontWeight: 600 }}>{row.venda_acai > 0 ? R(row.venda_acai) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#1565C0' }}>{row.farinha_tapioca > 0 ? R(row.farinha_tapioca) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#E65100' }}>{row.camarao > 0 ? R(row.camarao) : '—'}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#D32F2F' }}>{row.gastos > 0 ? R(row.gastos) : '—'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#374151' }}>{row.media_lucro_cx > 0 ? R(row.media_lucro_cx) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#2E7D32', fontWeight: 600 }}>{row.venda_acai > 0 ? R(row.venda_acai) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#1565C0' }}>{row.farinha_tapioca > 0 ? R(row.farinha_tapioca) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#E65100' }}>{row.camarao > 0 ? R(row.camarao) : 'â€”'}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#D32F2F' }}>{row.gastos > 0 ? R(row.gastos) : 'â€”'}</td>
                       <td style={{ padding: '8px 6px', whiteSpace: 'nowrap' }}>
-                        <button onClick={() => openEdit(row)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, marginRight: 2 }} title="Editar">✏️</button>
-                        <button onClick={() => handleDelete(row.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }} title="Excluir">🗑️</button>
+                        <button onClick={() => openEdit(row)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, marginRight: 2 }} title="Editar">âœï¸</button>
+                        <button onClick={() => handleDelete(row.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }} title="Excluir">ðŸ—‘ï¸</button>
                       </td>
                     </tr>
                   )
@@ -492,11 +492,11 @@ export default function LancamentoDiarioPage() {
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{N(totals.cxs, 1)}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{R(totals.valor_total)}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{N(totals.litros, 0)}L</td>
-                  <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{totals.litros > 0 && totals.cxs > 0 ? N(totals.litros / totals.cxs) : '—'}</td>
-                  <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{totals.litros > 0 ? R(totals.valor_total / totals.litros) : '—'}</td>
+                  <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{totals.litros > 0 && totals.cxs > 0 ? N(totals.litros / totals.cxs) : 'â€”'}</td>
+                  <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{totals.litros > 0 ? R(totals.valor_total / totals.litros) : 'â€”'}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{R(totals.valor_litros)}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{R(totals.lucro_total)}</td>
-                  <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{totals.cxs > 0 ? R(totals.lucro_total / totals.cxs) : '—'}</td>
+                  <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{totals.cxs > 0 ? R(totals.lucro_total / totals.cxs) : 'â€”'}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{R(totals.venda_acai)}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{R(totals.farinha_tapioca)}</td>
                   <td style={{ padding: '10px 10px', textAlign: 'right', fontSize: 12 }}>{R(totals.camarao)}</td>
@@ -506,7 +506,7 @@ export default function LancamentoDiarioPage() {
               </tbody>
             </table>
             <div style={{ marginTop: 8, fontSize: 11, color: '#9CA3AF' }}>
-              {filtered.length} registros · Linhas amarelas = dias sem produção · ⭐ = lucro &gt; R$ 3.000
+              {filtered.length} registros Â· Linhas amarelas = dias sem produÃ§Ã£o Â· â­ = lucro &gt; R$ 3.000
             </div>
           </div>
         )}
@@ -515,22 +515,22 @@ export default function LancamentoDiarioPage() {
         {tab === 'graficos' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 16 }}>Lucro Total por Mês</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 16 }}>Lucro Total por MÃªs</div>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `R$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)} />
+                  <Tooltip formatter={(v: unknown) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))} />
                   <Legend />
                   <Bar dataKey="lucro" fill="#2E7D32" name="Lucro" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="custo" fill="#D32F2F" name="Custo Açaí" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="custo" fill="#D32F2F" name="Custo AÃ§aÃ­" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="venda" fill="#7A2E83" name="Venda (cx)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
             <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 16 }}>Caixas Processadas por Mês</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 16 }}>Caixas Processadas por MÃªs</div>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
@@ -549,12 +549,12 @@ export default function LancamentoDiarioPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {/* By month */}
             <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 14 }}>📅 Resumo por Mês</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 14 }}>ðŸ“… Resumo por MÃªs</div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #F4E8F7' }}>
-                    {['Mês', 'Cxs', 'Custo', 'Venda Cx', 'Lucro', 'Gastos'].map(h => (
-                      <th key={h} style={{ padding: '6px 8px', textAlign: h === 'Mês' ? 'left' : 'right', fontSize: 10, fontWeight: 700, color: '#6B7280' }}>{h}</th>
+                    {['MÃªs', 'Cxs', 'Custo', 'Venda Cx', 'Lucro', 'Gastos'].map(h => (
+                      <th key={h} style={{ padding: '6px 8px', textAlign: h === 'MÃªs' ? 'left' : 'right', fontSize: 10, fontWeight: 700, color: '#6B7280' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -575,13 +575,13 @@ export default function LancamentoDiarioPage() {
 
             {/* Top days */}
             <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 14 }}>🏆 Top 10 Dias de Maior Lucro</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 14 }}>ðŸ† Top 10 Dias de Maior Lucro</div>
               {[...entries].filter(e => e.cxs > 0).sort((a, b) => b.lucro_total - a.lucro_total).slice(0, 10).map((row, i) => (
                 <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < 9 ? '1px solid #F4E8F7' : 'none' }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: i < 3 ? ['#7A2E83', '#9C4BA3', '#B565B0'][i] : '#F4E8F7', color: i < 3 ? 'white' : '#9CA3AF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, flexShrink: 0 }}>{i + 1}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 12, color: '#374151' }}>{row.data}</div>
-                    <div style={{ fontSize: 10, color: '#9CA3AF' }}>{N(row.cxs, 1)} cx · {N(row.litros, 0)}L</div>
+                    <div style={{ fontSize: 10, color: '#9CA3AF' }}>{N(row.cxs, 1)} cx Â· {N(row.litros, 0)}L</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontWeight: 800, fontSize: 13, color: '#2E7D32' }}>{R(row.lucro_total)}</div>
@@ -616,3 +616,4 @@ function Field({ label, type, placeholder, value, onChange, required, step }: { 
     </div>
   )
 }
+

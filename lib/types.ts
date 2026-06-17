@@ -45,7 +45,7 @@ export interface Batch {
   yield_per_box: number
   acai_type: string
   status: 'aberta' | 'em_producao' | 'envasada' | 'finalizada'
-  responsible_user_id: string
+  responsible_user_id?: string
   responsible_name: string
   notes: string
   created_at: string
