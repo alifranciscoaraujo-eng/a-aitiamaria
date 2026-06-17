@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockCustomers, mockSales } from '@/lib/mockData'
 import { formatCurrency, customerTypeLabel } from '@/lib/utils'
 import type { Customer } from '@/lib/types'
@@ -35,7 +34,6 @@ export default function ClientesPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Clientes" />
       <div style={{ padding: 24 }}>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap' }}>

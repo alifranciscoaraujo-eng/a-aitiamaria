@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { dailyRevenueData, monthlyData, productionVsSalesData, paymentMethodData } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
@@ -31,7 +30,6 @@ export default function RelatoriosPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Relatórios" />
       <div style={{ padding: 24 }}>
 
         {/* Filters */}

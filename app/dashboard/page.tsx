@@ -1,6 +1,5 @@
 'use client'
 import { useState, useMemo, useEffect } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockAlerts, mockProducts } from '@/lib/mockData'
 import { loadEntries } from '@/lib/dailyData'
 import { formatCurrency } from '@/lib/utils'
@@ -155,9 +154,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Dashboard" />
-
-      <div style={{ padding: '20px 24px', flex: 1, background: '#F8F5FB' }}>
+      <div className="page-pad" style={{ padding: '20px 24px', flex: 1, background: '#F8F5FB' }}>
 
         {/* Header com filtro de período */}
         <div style={{
@@ -221,7 +218,7 @@ export default function DashboardPage() {
         )}
 
         {/* KPI Cards — dados reais */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 14, marginBottom: 24 }}>
+        <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 14, marginBottom: 24 }}>
           <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} />
           <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} />
           <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} color="#D32F2F" />

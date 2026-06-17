@@ -1,6 +1,5 @@
 'use client'
 import { useState, useMemo, useRef, useEffect } from 'react'
-import Topbar from '@/components/Topbar'
 import { loadEntries, saveEntries, type DailyEntry } from '@/lib/dailyData'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
@@ -303,7 +302,6 @@ export default function LancamentoDiarioPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Lançamento Diário" />
       <div style={{ padding: 24 }}>
 
         {/* KPI strip */}

@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockCashSession } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import type { CashSession } from '@/lib/types'
@@ -35,7 +34,6 @@ export default function CaixaPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Caixa" />
       <div style={{ padding: 24 }}>
 
         {/* Status banner */}

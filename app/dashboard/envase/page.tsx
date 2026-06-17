@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockPackaging, mockBatches, mockProducts } from '@/lib/mockData'
 import { formatDate } from '@/lib/utils'
 import type { PackagingRecord } from '@/lib/types'
@@ -41,7 +40,6 @@ export default function EnvasePage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Envase / Pacotes" />
       <div style={{ padding: 24 }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

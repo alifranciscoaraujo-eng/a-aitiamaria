@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockUsers } from '@/lib/mockData'
 import { roleLabel } from '@/lib/utils'
 import type { User, UserRole } from '@/lib/types'
@@ -34,7 +33,6 @@ export default function UsuariosPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Usuários e Permissões" />
       <div style={{ padding: 24 }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

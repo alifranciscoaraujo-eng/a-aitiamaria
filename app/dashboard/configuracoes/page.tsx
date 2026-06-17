@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockProducts } from '@/lib/mockData'
 import { formatCurrency } from '@/lib/utils'
 import type { Product } from '@/lib/types'
@@ -35,7 +34,6 @@ export default function ConfiguracoesPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Configurações" />
       <div style={{ padding: 24 }}>
 
         {saved && (

@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockExpenses } from '@/lib/mockData'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Expense } from '@/lib/types'
@@ -39,7 +38,6 @@ export default function DespesasPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Despesas" />
       <div style={{ padding: 24 }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>

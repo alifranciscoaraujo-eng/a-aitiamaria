@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Topbar from '@/components/Topbar'
 import { mockProducts, mockStockMovements } from '@/lib/mockData'
 import { formatCurrency, formatDateTime, movementTypeLabel, movementTypeColor } from '@/lib/utils'
 import type { Product, StockMovement, MovementType } from '@/lib/types'
@@ -37,7 +36,6 @@ export default function EstoquePage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <Topbar title="Estoque" />
       <div style={{ padding: 24 }}>
 
         {/* KPIs */}

@@ -118,3 +118,42 @@ input, select, textarea {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(91,20,95,0.25); border-radius: 4px; }
+
+/* ── Mobile overlay sidebar ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 49;
+}
+@media (max-width: 767px) {
+  .sidebar-overlay { display: block; }
+  .sidebar-mobile-hidden { display: none !important; }
+  .topbar-menu-btn { display: flex !important; }
+  .topbar-date { display: none !important; }
+
+  /* KPI grids */
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .kpi-grid-wide { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Quick actions */
+  .quick-actions { flex-wrap: wrap !important; }
+  .quick-actions > * { min-width: calc(33% - 8px) !important; flex: 1 1 calc(33% - 8px) !important; }
+
+  /* Tables horizontal scroll */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Page padding */
+  .page-pad { padding: 12px 14px !important; }
+
+  /* Charts */
+  .chart-wrap { height: 200px !important; }
+
+  /* Forms */
+  .form-grid { grid-template-columns: 1fr !important; }
+
+  /* Alerts row */
+  .alerts-row { flex-direction: column !important; gap: 6px !important; }
+  .alerts-row > * { width: 100% !important; }
+}

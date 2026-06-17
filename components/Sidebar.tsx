@@ -18,7 +18,14 @@ const nav = [
   { href: '/dashboard/configuracoes', icon: '⚙️', label: 'Configurações' },
 ]
 
-export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+interface SidebarProps {
+  collapsed: boolean
+  onToggle: () => void
+  mobileOpen?: boolean
+  isMobile?: boolean
+}
+
+export default function Sidebar({ collapsed, onToggle, mobileOpen = false, isMobile = false }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { currentUser, logout } = useAppStore()
@@ -28,19 +35,27 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; o
     router.push('/')
   }
 
+  function handleNav(href: string) {
+    router.push(href)
+    if (isMobile) onToggle()
+  }
+
+  const width = collapsed ? 64 : 240
+
   return (
     <aside style={{
-      width: collapsed ? 64 : 240,
+      width,
       minHeight: '100vh',
       background: 'linear-gradient(180deg, #3B0A45 0%, #5B145F 60%, #7A2E83 100%)',
       display: 'flex',
       flexDirection: 'column',
-      transition: 'width 0.25s ease',
+      transition: 'transform 0.25s ease, width 0.25s ease',
       position: 'fixed',
       top: 0,
       left: 0,
       zIndex: 50,
       overflow: 'hidden',
+      transform: isMobile ? (mobileOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)',
     }}>
       {/* Logo */}
       <div style={{ padding: collapsed ? '14px 10px' : '14px 14px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -65,8 +80,11 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; o
             <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>Tia Maria Pro</span>
           </div>
         )}
-        <button onClick={onToggle} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: 18, padding: 0, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          {collapsed ? '›' : '‹'}
+        <button
+          onClick={onToggle}
+          style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: 18, padding: 4, display: 'flex', alignItems: 'center', flexShrink: 0 }}
+        >
+          {isMobile ? '✕' : (collapsed ? '›' : '‹')}
         </button>
       </div>
 
@@ -77,7 +95,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; o
           return (
             <button
               key={item.href}
-              onClick={() => router.push(item.href)}
+              onClick={() => handleNav(item.href)}
               className={`sidebar-link${isActive ? ' active' : ''}`}
               title={collapsed ? item.label : undefined}
               style={{ marginBottom: 2, overflow: 'hidden', whiteSpace: 'nowrap' }}
