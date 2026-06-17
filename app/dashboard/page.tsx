@@ -25,9 +25,9 @@ function QuickActionBtn({ icon, label, href }: { icon: string; label: string; hr
     <button
       onClick={() => router.push(href)}
       style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-        padding: '16px 12px', background: 'white', border: '1.5px solid #EDE8F5',
-        borderRadius: 16, cursor: 'pointer', transition: 'all 0.18s', flex: 1, minWidth: 80,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+        padding: '12px 8px', background: 'white', border: '1.5px solid #EDE8F5',
+        borderRadius: 14, cursor: 'pointer', transition: 'all 0.18s', width: '100%',
       }}
       onMouseEnter={e => {
         const b = e.currentTarget as HTMLButtonElement
@@ -44,14 +44,14 @@ function QuickActionBtn({ icon, label, href }: { icon: string; label: string; hr
   )
 }
 
-function KpiCard({ icon, label, value, sub, color, badge, badgeColor }: {
+function KpiCard({ icon, label, value, sub, color, badge, badgeColor, compact }: {
   icon: string; label: string; value: string; sub?: string; color?: string
-  badge?: string; badgeColor?: string
+  badge?: string; badgeColor?: string; compact?: boolean
 }) {
   return (
     <div style={{
-      background: 'white', borderRadius: 16, padding: '18px 20px',
-      border: '1px solid #EDE8F5', display: 'flex', flexDirection: 'column', gap: 6,
+      background: 'white', borderRadius: 14, padding: compact ? '12px 14px' : '18px 20px',
+      border: '1px solid #EDE8F5', display: 'flex', flexDirection: 'column', gap: compact ? 4 : 6,
       boxShadow: '0 1px 4px rgba(59,10,69,0.06)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -63,8 +63,8 @@ function KpiCard({ icon, label, value, sub, color, badge, badgeColor }: {
           }}>{badge}</span>
         )}
       </div>
-      <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: color ?? '#3B0A45', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: compact ? 10 : 11, color: '#9CA3AF', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <div style={{ fontSize: compact ? 17 : 22, fontWeight: 800, color: color ?? '#3B0A45', lineHeight: 1 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: '#B0B8C1' }}>{sub}</div>}
     </div>
   )
@@ -193,7 +193,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Ações rápidas */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: isMobile ? 8 : 10, marginBottom: isMobile ? 16 : 24 }}>
           <QuickActionBtn icon="📝" label="Lançamento Diário" href="/dashboard/lancamento" />
           <QuickActionBtn icon="🛒" label="Nova Venda" href="/dashboard/vendas" />
           <QuickActionBtn icon="🫐" label="Nova Barcada" href="/dashboard/producao" />
@@ -220,24 +220,25 @@ export default function DashboardPage() {
         )}
 
         {/* KPI Cards — dados reais */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(175px, 1fr))', gap: isMobile ? 10 : 14, marginBottom: 20 }}>
-          <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} />
-          <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} />
-          <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} color="#D32F2F" />
-          <KpiCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} color="#1565C0" />
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(175px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
+          <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} compact={isMobile} />
+          <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} compact={isMobile} />
+          <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} color="#D32F2F" compact={isMobile} />
+          <KpiCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} color="#1565C0" compact={isMobile} />
           <KpiCard icon="💰" label="Lucro Total" value={formatCurrency(kpi.lucro)} color="#2E7D32"
             badge={kpi.margem > 0 ? `${kpi.margem.toFixed(1)}%` : undefined}
             badgeColor={kpi.margem >= 30 ? '#2E7D32' : '#F57F17'}
+            compact={isMobile}
           />
-          <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} />
-          <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} />
-          <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} color="#7A2E83" />
-          <KpiCard icon="🍚" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} />
-          <KpiCard icon="🦐" label="Camarão" value={formatCurrency(kpi.camarao)} />
+          <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} compact={isMobile} />
+          <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} compact={isMobile} />
+          <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} color="#7A2E83" compact={isMobile} />
+          <KpiCard icon="🍚" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} compact={isMobile} />
+          <KpiCard icon="🦐" label="Camarão" value={formatCurrency(kpi.camarao)} compact={isMobile} />
         </div>
 
         {/* Gráficos row 1 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: isMobile ? 10 : 16, marginBottom: isMobile ? 10 : 16 }}>
           <div style={{ background: 'white', borderRadius: 16, padding: '20px 20px 12px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Evolução Diária — Últimos dias do período</div>
             <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Lucro, Custo Açaí e Venda Açaí por dia</div>
@@ -284,7 +285,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Gráfico caixas por mês + estoque */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 10 : 16, marginBottom: isMobile ? 10 : 16 }}>
           <div style={{ background: 'white', borderRadius: 16, padding: '20px 20px 12px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Caixas por Mês</div>
             <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Volume de produção mensal</div>
@@ -326,7 +327,8 @@ export default function DashboardPage() {
         <div style={{ background: 'white', borderRadius: 16, padding: '20px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>🏆 Top 5 Dias de Maior Lucro — Período Selecionado</div>
           <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 16 }}>Melhores resultados dentro do filtro aplicado</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isMobile ? 11 : 13, minWidth: isMobile ? 520 : 'auto' }}>
             <thead>
               <tr style={{ background: '#F8F5FB' }}>
                 {['#', 'DATA', 'CAIXAS', 'LITROS', 'CUSTO AÇAÍ', 'VENDA AÇAÍ', 'LUCRO', 'MARGEM'].map(h => (
@@ -365,6 +367,7 @@ export default function DashboardPage() {
                 })}
             </tbody>
           </table>
+          </div>
         </div>
 
       </div>
