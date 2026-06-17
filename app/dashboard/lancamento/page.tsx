@@ -1,6 +1,6 @@
 'use client'
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { loadEntries, saveEntries, type DailyEntry } from '@/lib/dailyData'
+import { loadEntries, saveEntry, updateEntry, deleteEntry, upsertEntries, type DailyEntry } from '@/lib/dailyData'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 const empty = (): Omit<DailyEntry, 'id' | 'litros_cx' | 'custo_litro' | 'lucro_total' | 'media_lucro_cx'> => ({
@@ -45,8 +45,9 @@ function parseDate(d: string) {
 }
 
 export default function LancamentoDiarioPage() {
-  const [entries, setEntries] = useState<DailyEntry[]>(loadEntries())
-  useEffect(() => { setEntries(loadEntries()) }, [])
+  const [entries, setEntries] = useState<DailyEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => { loadEntries().then(e => { setEntries(e); setLoading(false) }) }, [])
   const [showForm, setShowForm] = useState(false)
   const [editEntry, setEditEntry] = useState<DailyEntry | null>(null)
   const [form, setForm] = useState(empty())
@@ -143,19 +144,16 @@ export default function LancamentoDiarioPage() {
     return imported
   }
 
-  function applyImport(imported: DailyEntry[]) {
+  async function applyImport(imported: DailyEntry[]) {
     if (imported.length === 0) {
       setImportMsg({ type: 'err', text: 'Nenhum registro encontrado. Verifique se a planilha tem a coluna DATA no formato DD/MM/AAAA.' })
       return
     }
-    setEntries(prev => {
-      const map = new Map(prev.map(x => [x.data, x]))
-      imported.forEach(x => map.set(x.data, x))
-      const next = [...map.values()].sort((a, b) => parseDate(b.data).getTime() - parseDate(a.data).getTime())
-      saveEntries(next)
-      return next
-    })
-    setImportMsg({ type: 'ok', text: `✅ ${imported.length} registros importados/atualizados com sucesso!` })
+    setImportMsg({ type: 'ok', text: `⏳ Enviando ${imported.length} registros para o banco...` })
+    const count = await upsertEntries(imported)
+    const refreshed = await loadEntries()
+    setEntries(refreshed)
+    setImportMsg({ type: 'ok', text: `✅ ${count} registros importados/atualizados com sucesso!` })
     setTimeout(() => setImportMsg(null), 6000)
   }
 
@@ -216,33 +214,25 @@ export default function LancamentoDiarioPage() {
     setShowForm(true)
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     const entry = calc(form)
     if (editEntry) {
-      setEntries(prev => {
-        const next = prev.map(x => x.id === editEntry.id ? entry : x)
-        saveEntries(next)
-        return next
-      })
+      await updateEntry(editEntry.id, entry)
+      setEntries(prev => prev.map(x => x.id === editEntry.id ? { ...entry, id: editEntry.id } : x))
     } else {
-      setEntries(prev => {
-        const filtered = prev.filter(x => x.data !== form.data)
-        const next = [entry, ...filtered].sort((a, b) => parseDate(b.data).getTime() - parseDate(a.data).getTime())
-        saveEntries(next)
-        return next
-      })
+      const saved = await saveEntry(entry)
+      if (saved) {
+        setEntries(prev => [saved, ...prev.filter(x => x.data !== entry.data)].sort((a, b) => parseDate(b.data).getTime() - parseDate(a.data).getTime()))
+      }
     }
     setShowForm(false)
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm('Confirmar exclusão deste registro?')) return
-    setEntries(prev => {
-      const next = prev.filter(x => x.id !== id)
-      saveEntries(next)
-      return next
-    })
+    await deleteEntry(id)
+    setEntries(prev => prev.filter(x => x.id !== id))
   }
 
   function setF(key: keyof typeof form, value: number | string) {

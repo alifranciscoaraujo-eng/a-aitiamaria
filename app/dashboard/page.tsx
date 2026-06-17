@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useMobile } from '@/lib/useMobile'
 import { mockAlerts, mockProducts } from '@/lib/mockData'
-import { loadEntries } from '@/lib/dailyData'
+import { loadEntries, DailyEntry } from '@/lib/dailyData'
 import { formatCurrency } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import {
@@ -73,8 +73,8 @@ function KpiCard({ icon, label, value, sub, color, badge, badgeColor, compact }:
 export default function DashboardPage() {
   const today = new Date()
   const isMobile = useMobile()
-  const [allEntries, setAllEntries] = useState(loadEntries())
-  useEffect(() => { setAllEntries(loadEntries()) }, [])
+  const [allEntries, setAllEntries] = useState<DailyEntry[]>([])
+  useEffect(() => { loadEntries().then(setAllEntries) }, [])
   const [period, setPeriod] = useState<Period>('mes')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
