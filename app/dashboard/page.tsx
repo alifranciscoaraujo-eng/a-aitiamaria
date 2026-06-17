@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useMemo, useEffect } from 'react'
 import Topbar from '@/components/Topbar'
 import { mockAlerts, mockProducts } from '@/lib/mockData'
@@ -118,7 +118,7 @@ export default function DashboardPage() {
     return { diasProd, cxs, litros, custo, valorLitros, lucro, gastos, vendaAcai, farinha, camarao, receita, margem, custoPorLitro, lucroMedioCx, dias: filtered.length }
   }, [filtered])
 
-  // Daily chart â€” Ãºltimos 14 dias do perÃ­odo
+  // Daily chart — últimos 14 dias do período
   const dailyChart = useMemo(() => {
     const last14 = [...filtered].slice(-14)
     return last14.map(e => ({
@@ -146,9 +146,9 @@ export default function DashboardPage() {
   }, [filtered])
 
   const PERIODS: { key: Period; label: string }[] = [
-    { key: '7d', label: 'Ãšltimos 7 dias' },
-    { key: '30d', label: 'Ãšltimos 30 dias' },
-    { key: 'mes', label: 'Este mÃªs' },
+    { key: '7d', label: 'Últimos 7 dias' },
+    { key: '30d', label: 'Últimos 30 dias' },
+    { key: 'mes', label: 'Este mês' },
     { key: 'ano', label: 'Este ano' },
     { key: 'custom', label: 'Personalizado' },
   ]
@@ -159,13 +159,13 @@ export default function DashboardPage() {
 
       <div style={{ padding: '20px 24px', flex: 1, background: '#F8F5FB' }}>
 
-        {/* Header com filtro de perÃ­odo */}
+        {/* Header com filtro de período */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, flexWrap: 'wrap',
           background: 'white', borderRadius: 16, padding: '14px 18px', border: '1px solid #EDE8F5',
           boxShadow: '0 1px 4px rgba(59,10,69,0.05)',
         }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#5B145F', marginRight: 6 }}>ðŸ“… PerÃ­odo:</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#5B145F', marginRight: 6 }}>📅 Período:</span>
           {PERIODS.map(p => (
             <button
               key={p.key}
@@ -183,24 +183,24 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 4 }}>
               <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
                 style={{ padding: '5px 10px', borderRadius: 8, border: '1.5px solid #EDE8F5', fontSize: 12, color: '#374151' }} />
-              <span style={{ fontSize: 12, color: '#9CA3AF' }}>atÃ©</span>
+              <span style={{ fontSize: 12, color: '#9CA3AF' }}>até</span>
               <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
                 style={{ padding: '5px 10px', borderRadius: 8, border: '1.5px solid #EDE8F5', fontSize: 12, color: '#374151' }} />
             </div>
           )}
           <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9CA3AF', background: '#F8F5FB', padding: '4px 10px', borderRadius: 10 }}>
-            {kpi.diasProd} dias com produÃ§Ã£o Â· {filtered.length} dias no perÃ­odo
+            {kpi.diasProd} dias com produção · {filtered.length} dias no período
           </span>
         </div>
 
-        {/* AÃ§Ãµes rÃ¡pidas */}
+        {/* Ações rápidas */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
-          <QuickActionBtn icon="ðŸ“" label="LanÃ§amento DiÃ¡rio" href="/dashboard/lancamento" />
-          <QuickActionBtn icon="ðŸ›’" label="Nova Venda" href="/dashboard/vendas" />
-          <QuickActionBtn icon="ðŸ«" label="Nova Barcada" href="/dashboard/producao" />
-          <QuickActionBtn icon="ðŸ“¦" label="Registrar Envase" href="/dashboard/envase" />
-          <QuickActionBtn icon="ðŸ’°" label="Fechar Caixa" href="/dashboard/caixa" />
-          <QuickActionBtn icon="ðŸ“ˆ" label="RelatÃ³rios" href="/dashboard/relatorios" />
+          <QuickActionBtn icon="📝" label="Lançamento Diário" href="/dashboard/lancamento" />
+          <QuickActionBtn icon="🛒" label="Nova Venda" href="/dashboard/vendas" />
+          <QuickActionBtn icon="🫐" label="Nova Barcada" href="/dashboard/producao" />
+          <QuickActionBtn icon="📦" label="Registrar Envase" href="/dashboard/envase" />
+          <QuickActionBtn icon="💰" label="Fechar Caixa" href="/dashboard/caixa" />
+          <QuickActionBtn icon="📈" label="Relatórios" href="/dashboard/relatorios" />
         </div>
 
         {/* Alertas */}
@@ -213,35 +213,35 @@ export default function DashboardPage() {
                 border: `1px solid ${alert.severity === 'error' ? '#FECACA' : alert.severity === 'warning' ? '#FDE68A' : '#BFDBFE'}`,
                 fontSize: 12,
               }}>
-                <span>{alert.severity === 'error' ? 'ðŸ”´' : alert.severity === 'warning' ? 'ðŸŸ¡' : 'â„¹ï¸'}</span>
+                <span>{alert.severity === 'error' ? '🔴' : alert.severity === 'warning' ? '🟡' : 'ℹ️'}</span>
                 <span style={{ fontWeight: 600, color: '#374151' }}>{alert.title}</span>
               </div>
             ))}
           </div>
         )}
 
-        {/* KPI Cards â€” dados reais */}
+        {/* KPI Cards — dados reais */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 14, marginBottom: 24 }}>
-          <KpiCard icon="ðŸ“¦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} />
-          <KpiCard icon="ðŸ«" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} />
-          <KpiCard icon="ðŸ’¸" label="Custo AÃ§aÃ­" value={formatCurrency(kpi.custo)} color="#D32F2F" />
-          <KpiCard icon="ðŸ’µ" label="Receita Total" value={formatCurrency(kpi.receita)} color="#1565C0" />
-          <KpiCard icon="ðŸ’°" label="Lucro Total" value={formatCurrency(kpi.lucro)} color="#2E7D32"
+          <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} />
+          <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} />
+          <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} color="#D32F2F" />
+          <KpiCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} color="#1565C0" />
+          <KpiCard icon="💰" label="Lucro Total" value={formatCurrency(kpi.lucro)} color="#2E7D32"
             badge={kpi.margem > 0 ? `${kpi.margem.toFixed(1)}%` : undefined}
             badgeColor={kpi.margem >= 30 ? '#2E7D32' : '#F57F17'}
           />
-          <KpiCard icon="ðŸ“Š" label="Lucro MÃ©dio / Cx" value={formatCurrency(kpi.lucroMedioCx)} />
-          <KpiCard icon="ðŸ”¢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} />
-          <KpiCard icon="ðŸ§¾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} color="#7A2E83" />
-          <KpiCard icon="ðŸš" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} />
-          <KpiCard icon="ðŸ¦" label="CamarÃ£o" value={formatCurrency(kpi.camarao)} />
+          <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} />
+          <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} />
+          <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} color="#7A2E83" />
+          <KpiCard icon="🍚" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} />
+          <KpiCard icon="🦐" label="Camarão" value={formatCurrency(kpi.camarao)} />
         </div>
 
-        {/* GrÃ¡ficos row 1 */}
+        {/* Gráficos row 1 */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'white', borderRadius: 16, padding: '20px 20px 12px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>EvoluÃ§Ã£o DiÃ¡ria â€” Ãšltimos dias do perÃ­odo</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Lucro, Custo AÃ§aÃ­ e Venda AÃ§aÃ­ por dia</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Evolução Diária — Últimos dias do período</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Lucro, Custo Açaí e Venda Açaí por dia</div>
             <ResponsiveContainer width="100%" height={230}>
               <AreaChart data={dailyChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <defs>
@@ -260,14 +260,14 @@ export default function DashboardPage() {
                 <Tooltip formatter={(v: unknown) => formatCurrency(Number(v))} />
                 <Legend />
                 <Area type="monotone" dataKey="lucro" stroke="#2E7D32" fill="url(#gLucro)" strokeWidth={2} name="Lucro" />
-                <Area type="monotone" dataKey="custo" stroke="#D32F2F" fill="url(#gCusto)" strokeWidth={2} name="Custo AÃ§aÃ­" />
-                <Area type="monotone" dataKey="venda" stroke="#7A2E83" strokeWidth={1.5} fill="none" name="Venda AÃ§aÃ­" strokeDasharray="4 2" />
+                <Area type="monotone" dataKey="custo" stroke="#D32F2F" fill="url(#gCusto)" strokeWidth={2} name="Custo Açaí" />
+                <Area type="monotone" dataKey="venda" stroke="#7A2E83" strokeWidth={1.5} fill="none" name="Venda Açaí" strokeDasharray="4 2" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
           <div style={{ background: 'white', borderRadius: 16, padding: '20px 20px 12px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Resultado por MÃªs</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Resultado por Mês</div>
             <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Receita, Custo e Lucro</div>
             <ResponsiveContainer width="100%" height={230}>
               <BarChart data={monthlyChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -277,18 +277,18 @@ export default function DashboardPage() {
                 <Tooltip formatter={(v: unknown) => formatCurrency(Number(v))} />
                 <Legend />
                 <Bar dataKey="receita" fill="#1565C0" name="Receita" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="custo" fill="#D32F2F" name="Custo AÃ§aÃ­" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="custo" fill="#D32F2F" name="Custo Açaí" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="lucro" fill="#2E7D32" name="Lucro" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* GrÃ¡fico caixas por mÃªs + estoque */}
+        {/* Gráfico caixas por mês + estoque */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'white', borderRadius: 16, padding: '20px 20px 12px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Caixas por MÃªs</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Volume de produÃ§Ã£o mensal</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Caixas por Mês</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Volume de produção mensal</div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={monthlyChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EAF5" />
@@ -301,8 +301,8 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ background: 'white', borderRadius: 16, padding: '20px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>ðŸ“¦ Estoque Atual</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>NÃ­vel de produtos em estoque</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>📦 Estoque Atual</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Nível de produtos em estoque</div>
             {mockProducts.slice(0, 7).map(p => {
               const pct = Math.min(100, (p.current_stock / (p.minimum_stock * 3)) * 100)
               const low = p.current_stock <= p.minimum_stock
@@ -311,7 +311,7 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                     <span style={{ fontWeight: 500, color: '#374151' }}>{p.name}</span>
                     <span style={{ fontWeight: 700, color: low ? '#D32F2F' : '#2E7D32', fontSize: 11 }}>
-                      {p.current_stock} un {low && 'âš ï¸'}
+                      {p.current_stock} un {low && '⚠️'}
                     </span>
                   </div>
                   <div style={{ height: 5, background: '#F0EAF5', borderRadius: 4, overflow: 'hidden' }}>
@@ -323,14 +323,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Top 5 dias de maior lucro no perÃ­odo */}
+        {/* Top 5 dias de maior lucro no período */}
         <div style={{ background: 'white', borderRadius: 16, padding: '20px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>ðŸ† Top 5 Dias de Maior Lucro â€” PerÃ­odo Selecionado</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>🏆 Top 5 Dias de Maior Lucro — Período Selecionado</div>
           <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 16 }}>Melhores resultados dentro do filtro aplicado</div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ background: '#F8F5FB' }}>
-                {['#', 'DATA', 'CAIXAS', 'LITROS', 'CUSTO AÃ‡AÃ', 'VENDA AÃ‡AÃ', 'LUCRO', 'MARGEM'].map(h => (
+                {['#', 'DATA', 'CAIXAS', 'LITROS', 'CUSTO AÇAÍ', 'VENDA AÇAÍ', 'LUCRO', 'MARGEM'].map(h => (
                   <th key={h} style={{ padding: '8px 12px', textAlign: h === '#' || h === 'DATA' || h === 'CAIXAS' || h === 'LITROS' ? 'left' : 'right', fontSize: 11, color: '#6B7280', fontWeight: 700, borderBottom: '2px solid #EDE8F5' }}>{h}</th>
                 ))}
               </tr>
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                       onMouseLeave={ev => (ev.currentTarget as HTMLTableRowElement).style.background = 'white'}
                     >
                       <td style={{ padding: '10px 12px', fontWeight: 800, color: ['#F59E0B', '#9CA3AF', '#B45309'][i] ?? '#6B7280' }}>
-                        {i === 0 ? 'ðŸ¥‡' : i === 1 ? 'ðŸ¥ˆ' : i === 2 ? 'ðŸ¥‰' : `${i + 1}Âº`}
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}
                       </td>
                       <td style={{ padding: '10px 12px', fontWeight: 600 }}>{e.data}</td>
                       <td style={{ padding: '10px 12px', color: '#374151' }}>{e.cxs}</td>
@@ -372,4 +372,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
