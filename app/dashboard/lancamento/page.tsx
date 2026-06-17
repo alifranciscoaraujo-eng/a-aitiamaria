@@ -110,7 +110,7 @@ export default function LancamentoDiarioPage() {
     return parseFloat(s) || 0
   }
 
-  function parseRows(rows: string[][]): DailyEntry[] {
+  function parseRows(rows: unknown[][]): DailyEntry[] {
     const imported: DailyEntry[] = []
     // Find first data row: skip all rows until we find one where col[0] looks like a date
     let start = 0
@@ -121,7 +121,7 @@ export default function LancamentoDiarioPage() {
       }
     }
     for (let i = start; i < rows.length; i++) {
-      const cols = rows[i].map(c => String(c ?? '').trim().replace(/['"]/g, ''))
+      const cols = (rows[i] ?? []).map((c: unknown) => String(c ?? '').trim().replace(/['"]/g, ''))
       if (!cols[0]) continue
       const data = normalizeDate(cols[0])
       if (!data) continue
@@ -177,8 +177,8 @@ export default function LancamentoDiarioPage() {
             const wb = XLSX.read(data, { type: 'array' })
             const ws = wb.Sheets[wb.SheetNames[0]]
             // raw:true → números como números, datas como serial do Excel
-            const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' })
-            applyImport(parseRows(rows as string[][]))
+            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' }) as unknown[][]
+            applyImport(parseRows(rows))
           } catch {
             setImportMsg({ type: 'err', text: 'Erro ao ler o arquivo Excel. Verifique se não está corrompido.' })
           }
