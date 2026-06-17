@@ -1,5 +1,6 @@
 'use client'
 import { useState, useMemo, useEffect } from 'react'
+import { useMobile } from '@/lib/useMobile'
 import { mockAlerts, mockProducts } from '@/lib/mockData'
 import { loadEntries } from '@/lib/dailyData'
 import { formatCurrency } from '@/lib/utils'
@@ -71,6 +72,7 @@ function KpiCard({ icon, label, value, sub, color, badge, badgeColor }: {
 
 export default function DashboardPage() {
   const today = new Date()
+  const isMobile = useMobile()
   const [allEntries, setAllEntries] = useState(loadEntries())
   useEffect(() => { setAllEntries(loadEntries()) }, [])
   const [period, setPeriod] = useState<Period>('mes')
@@ -154,21 +156,21 @@ export default function DashboardPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <div className="page-pad" style={{ padding: '20px 24px', flex: 1, background: '#F8F5FB' }}>
+      <div style={{ padding: isMobile ? '12px 14px' : '20px 24px', flex: 1, background: '#F8F5FB' }}>
 
         {/* Header com filtro de período */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, flexWrap: 'wrap',
-          background: 'white', borderRadius: 16, padding: '14px 18px', border: '1px solid #EDE8F5',
+          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap',
+          background: 'white', borderRadius: 14, padding: isMobile ? '10px 12px' : '14px 18px', border: '1px solid #EDE8F5',
           boxShadow: '0 1px 4px rgba(59,10,69,0.05)',
         }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#5B145F', marginRight: 6 }}>📅 Período:</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#5B145F', width: isMobile ? '100%' : 'auto' }}>📅 Período:</span>
           {PERIODS.map(p => (
             <button
               key={p.key}
               onClick={() => setPeriod(p.key)}
               style={{
-                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                padding: isMobile ? '5px 10px' : '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
                 border: period === p.key ? 'none' : '1.5px solid #EDE8F5',
                 background: period === p.key ? '#7A2E83' : 'white',
                 color: period === p.key ? 'white' : '#6B7280',
@@ -218,7 +220,7 @@ export default function DashboardPage() {
         )}
 
         {/* KPI Cards — dados reais */}
-        <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 14, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(175px, 1fr))', gap: isMobile ? 10 : 14, marginBottom: 20 }}>
           <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} />
           <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} />
           <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} color="#D32F2F" />

@@ -2,6 +2,7 @@
 import { useAppStore } from '@/lib/store'
 import { useRouter, usePathname } from 'next/navigation'
 import { mockAlerts } from '@/lib/mockData'
+import { useMobile } from '@/lib/useMobile'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -23,6 +24,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { currentUser } = useAppStore()
   const router = useRouter()
   const pathname = usePathname()
+  const isMobile = useMobile()
   const activeAlerts = mockAlerts.filter(a => a.status === 'ativo').length
   const title = pageTitles[pathname] ?? 'Dashboard'
 
@@ -41,37 +43,24 @@ export default function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
       boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     }}>
       {/* Hamburger — mobile only */}
-      <button
-        onClick={onMenuClick}
-        className="topbar-menu-btn"
-        style={{
-          display: 'none',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 36,
-          height: 36,
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: 20,
-          color: '#3B0A45',
-          flexShrink: 0,
-          padding: 0,
-        }}
-      >
-        ☰
-      </button>
+      {isMobile && (
+        <button
+          onClick={onMenuClick}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#3B0A45', flexShrink: 0, padding: 0 }}
+        >
+          ☰
+        </button>
+      )}
 
       <h1 style={{ flex: 1, fontSize: 16, fontWeight: 700, color: '#3B0A45', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {title}
       </h1>
 
-      <div
-        className="topbar-date"
-        style={{ fontSize: 11, color: '#6B7280', background: '#F4E8F7', padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap' }}
-      >
-        📅 {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
-      </div>
+      {!isMobile && (
+        <div style={{ fontSize: 11, color: '#6B7280', background: '#F4E8F7', padding: '4px 10px', borderRadius: 20, whiteSpace: 'nowrap' }}>
+          📅 {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+        </div>
+      )}
 
       <button onClick={() => router.push('/dashboard')} style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>
         🔔
