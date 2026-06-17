@@ -98,7 +98,7 @@ export default function DashboardPage() {
       const d = parseDate(e.data)
       return d >= periodStart && d <= periodEnd
     }),
-    [periodStart, periodEnd]
+    [allEntries, periodStart, periodEnd]
   )
 
   const kpi = useMemo(() => {
