@@ -1,5 +1,13 @@
 import { supabase } from './supabase'
 
+export interface ComposicaoLinha {
+  produto_id: string
+  produto_nome: string
+  valor_litro: number
+  pacotes_meio: number   // pacotes de 1/2 litro
+  pacotes_um: number     // pacotes de 1 litro
+}
+
 export interface DailyEntry {
   id: string
   data: string           // DD/MM/YYYY
@@ -15,6 +23,7 @@ export interface DailyEntry {
   farinha_tapioca: number
   camarao: number
   gastos: number
+  composicao?: ComposicaoLinha[]
 }
 
 function isoToBR(iso: string): string {
@@ -43,6 +52,7 @@ function rowToEntry(row: Record<string, unknown>): DailyEntry {
     farinha_tapioca: Number(row.farinha_tapioca) || 0,
     camarao: Number(row.camarao) || 0,
     gastos: Number(row.gastos) || 0,
+    composicao: Array.isArray(row.composicao) ? (row.composicao as ComposicaoLinha[]) : undefined,
   }
 }
 
@@ -72,6 +82,7 @@ export async function saveEntry(entry: Omit<DailyEntry, 'id'>): Promise<DailyEnt
       farinha_tapioca: entry.farinha_tapioca,
       camarao: entry.camarao,
       gastos: entry.gastos,
+      composicao: entry.composicao ?? null,
     })
     .select()
     .single()
@@ -94,6 +105,7 @@ export async function updateEntry(id: string, entry: Partial<DailyEntry>): Promi
   if (entry.farinha_tapioca !== undefined) patch.farinha_tapioca = entry.farinha_tapioca
   if (entry.camarao !== undefined) patch.camarao = entry.camarao
   if (entry.gastos !== undefined) patch.gastos = entry.gastos
+  if (entry.composicao !== undefined) patch.composicao = entry.composicao ?? null
   const { error } = await supabase.from('daily_entries').update(patch).eq('id', id)
   return !error
 }

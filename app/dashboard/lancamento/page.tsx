@@ -1,7 +1,31 @@
 'use client'
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { loadEntries, saveEntry, updateEntry, deleteEntry, upsertEntries, type DailyEntry } from '@/lib/dailyData'
+import { loadEntries, saveEntry, updateEntry, deleteEntry, upsertEntries, type DailyEntry, type ComposicaoLinha } from '@/lib/dailyData'
+import { getProdutos, type Produto } from '@/lib/producaoData'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+const VOL_MEIO = 0.5
+const VOL_UM = 1.0
+
+interface CompLinhaForm { produto_id: string; pacotes_meio: string; pacotes_um: string }
+const emptyComp = (): CompLinhaForm[] => [{ produto_id: '', pacotes_meio: '', pacotes_um: '' }]
+
+function compToLinhas(comp: CompLinhaForm[], produtos: Produto[]): ComposicaoLinha[] {
+  return comp
+    .filter(c => c.produto_id && (Number(c.pacotes_meio) > 0 || Number(c.pacotes_um) > 0))
+    .map(c => {
+      const p = produtos.find(x => x.id === c.produto_id)
+      return {
+        produto_id: c.produto_id,
+        produto_nome: p?.nome ?? '',
+        valor_litro: p?.valor_litro ?? 0,
+        pacotes_meio: Number(c.pacotes_meio) || 0,
+        pacotes_um: Number(c.pacotes_um) || 0,
+      }
+    })
+}
+function linhaLitros(l: ComposicaoLinha) { return l.pacotes_meio * VOL_MEIO + l.pacotes_um * VOL_UM }
+function linhaTotal(l: ComposicaoLinha) { return linhaLitros(l) * l.valor_litro }
 
 const empty = (): Omit<DailyEntry, 'id' | 'litros_cx' | 'custo_litro' | 'lucro_total' | 'media_lucro_cx'> => ({
   data: new Date().toLocaleDateString('pt-BR'),
@@ -51,6 +75,9 @@ export default function LancamentoDiarioPage() {
   const [showForm, setShowForm] = useState(false)
   const [editEntry, setEditEntry] = useState<DailyEntry | null>(null)
   const [form, setForm] = useState(empty())
+  const [produtos, setProdutos] = useState<Produto[]>([])
+  const [comp, setComp] = useState<CompLinhaForm[]>(emptyComp())
+  useEffect(() => { setProdutos(getProdutos().filter(p => p.status === 'ativo')) }, [])
   const [filterMonth, setFilterMonth] = useState('')
   const [tab, setTab] = useState<'tabela' | 'graficos' | 'resumo'>('tabela')
   const [search, setSearch] = useState('')
@@ -199,24 +226,43 @@ export default function LancamentoDiarioPage() {
     }
   }
 
+  // Composição → litros e valor calculados automaticamente (dinâmica do anexo 2)
+  const compLinhas = useMemo(() => compToLinhas(comp, produtos), [comp, produtos])
+  const compAtiva = compLinhas.length > 0
+  const compLitros = useMemo(() => compLinhas.reduce((s, l) => s + linhaLitros(l), 0), [compLinhas])
+  const compValor = useMemo(() => compLinhas.reduce((s, l) => s + linhaTotal(l), 0), [compLinhas])
+
+  // Quando a composição está ativa, ela dita litros e valor_litros; senão usa o que está no form (entradas importadas)
+  const litrosEfetivo = compAtiva ? compLitros : form.litros
+  const valorLitrosEfetivo = compAtiva ? compValor : form.valor_litros
+
   // computed preview
-  const preview = calc(form)
+  const preview = calc({ ...form, litros: litrosEfetivo, valor_litros: valorLitrosEfetivo })
 
   function openNew() {
     setForm(empty())
+    setComp(emptyComp())
     setEditEntry(null)
     setShowForm(true)
   }
 
   function openEdit(entry: DailyEntry) {
     setForm({ data: entry.data, cxs: entry.cxs, valor_total: entry.valor_total, litros: entry.litros, valor_litros: entry.valor_litros, venda_acai: entry.venda_acai, farinha_tapioca: entry.farinha_tapioca, camarao: entry.camarao, gastos: entry.gastos })
+    setComp(entry.composicao && entry.composicao.length
+      ? entry.composicao.map(l => ({ produto_id: l.produto_id, pacotes_meio: l.pacotes_meio ? String(l.pacotes_meio) : '', pacotes_um: l.pacotes_um ? String(l.pacotes_um) : '' }))
+      : emptyComp())
     setEditEntry(entry)
     setShowForm(true)
   }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    const entry = calc(form)
+    const linhas = compToLinhas(comp, produtos)
+    const ativa = linhas.length > 0
+    const litros = ativa ? linhas.reduce((s, l) => s + linhaLitros(l), 0) : form.litros
+    const valor_litros = ativa ? linhas.reduce((s, l) => s + linhaTotal(l), 0) : form.valor_litros
+    const composicao = ativa ? linhas : (editEntry?.composicao ?? undefined)
+    const entry: DailyEntry = { ...calc({ ...form, litros, valor_litros }), composicao }
     if (editEntry) {
       await updateEntry(editEntry.id, entry)
       setEntries(prev => prev.map(x => x.id === editEntry.id ? { ...entry, id: editEntry.id } : x))
@@ -386,12 +432,78 @@ export default function LancamentoDiarioPage() {
                     <Field label="Data" type="text" placeholder="DD/MM/AAAA" value={form.data} onChange={v => setF('data', v)} required />
                     <Field label="Caixas (CXS)" type="number" placeholder="0" value={form.cxs || ''} onChange={v => setF('cxs', Number(v))} step="0.5" />
                     <Field label="Valor Total (R$)" type="number" placeholder="0,00" value={form.valor_total || ''} onChange={v => setF('valor_total', Number(v))} step="0.01" />
-                    <Field label="Litros Produzidos" type="number" placeholder="0" value={form.litros || ''} onChange={v => setF('litros', Number(v))} step="0.5" />
+                    <ReadOnly label="Litros Produzidos" value={litrosEfetivo > 0 ? `${N(litrosEfetivo, 1)} L` : '—'} hint={compAtiva ? 'da composição' : undefined} />
                   </div>
                 </div>
 
+                {/* Section: Composição (dinâmica do anexo 2 — PLANILHA DE CONTROLE DE AÇAÍ) */}
+                <div style={{ background: '#F0FDF4', borderRadius: 12, padding: '14px 16px', marginBottom: 16, border: '1px solid #D1FAE5' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#15803D', textTransform: 'uppercase', letterSpacing: 0.5 }}>📦 Composição (pacotes)</div>
+                    <button type="button" onClick={() => setComp(p => [...p, { produto_id: '', pacotes_meio: '', pacotes_um: '' }])}
+                      style={{ background: '#059669', color: 'white', border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>+ Linha</button>
+                  </div>
+                  {produtos.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#9CA3AF', padding: '4px 0' }}>Nenhum produto ativo. Cadastre tipos de açaí na aba Produtos.</div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 560 }}>
+                        <thead>
+                          <tr style={{ background: '#DCFCE7' }}>
+                            {['Tipo de Açaí', 'R$/L', 'Pacotes 1/2L', 'Pacotes 1L', 'Litros', 'Total R$', ''].map(h => (
+                              <th key={h} style={{ padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#15803D', fontSize: 11, whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {comp.map((l, i) => {
+                            const p = produtos.find(x => x.id === l.produto_id)
+                            const litros = p ? (Number(l.pacotes_meio) || 0) * VOL_MEIO + (Number(l.pacotes_um) || 0) * VOL_UM : 0
+                            const tot = litros * (p?.valor_litro ?? 0)
+                            return (
+                              <tr key={i} style={{ borderBottom: '1px solid #D1FAE5' }}>
+                                <td style={{ padding: '5px 4px 5px 0' }}>
+                                  <select value={l.produto_id} onChange={e => setComp(prev => prev.map((x, j) => j === i ? { ...x, produto_id: e.target.value } : x))}
+                                    style={{ width: '100%', minWidth: 130, padding: '8px 9px', border: '1.5px solid #E5E7EB', borderRadius: 8, fontSize: 12 }}>
+                                    <option value="">Selecione...</option>
+                                    {produtos.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                                  </select>
+                                </td>
+                                <td style={{ padding: '5px 8px', color: '#059669', fontWeight: 700, whiteSpace: 'nowrap' }}>{p ? R(p.valor_litro) : '—'}</td>
+                                <td style={{ padding: '5px 4px' }}>
+                                  <input type="number" min="0" value={l.pacotes_meio} onChange={e => setComp(prev => prev.map((x, j) => j === i ? { ...x, pacotes_meio: e.target.value } : x))}
+                                    style={{ width: 72, padding: '8px 9px', border: '1.5px solid #E5E7EB', borderRadius: 8, fontSize: 12 }} placeholder="0" />
+                                </td>
+                                <td style={{ padding: '5px 4px' }}>
+                                  <input type="number" min="0" value={l.pacotes_um} onChange={e => setComp(prev => prev.map((x, j) => j === i ? { ...x, pacotes_um: e.target.value } : x))}
+                                    style={{ width: 72, padding: '8px 9px', border: '1.5px solid #E5E7EB', borderRadius: 8, fontSize: 12 }} placeholder="0" />
+                                </td>
+                                <td style={{ padding: '5px 8px', fontWeight: 600, color: '#15803D', whiteSpace: 'nowrap' }}>{litros > 0 ? `${N(litros, 1)} L` : '—'}</td>
+                                <td style={{ padding: '5px 8px', fontWeight: 700, color: '#1D4ED8', whiteSpace: 'nowrap' }}>{tot > 0 ? R(tot) : '—'}</td>
+                                <td style={{ padding: '5px 4px' }}>
+                                  {comp.length > 1 && <button type="button" onClick={() => setComp(prev => prev.filter((_, j) => j !== i))} style={{ background: '#FEE2E2', border: 'none', borderRadius: 6, padding: '4px 8px', color: '#DC2626', fontSize: 11, cursor: 'pointer' }}>✕</button>}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {compAtiva && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginTop: 12, background: '#DCFCE7', borderRadius: 10, padding: '10px 16px' }}>
+                      {[['Total Litros', `${N(compLitros, 1)} L`], ['Total R$ (Valor Litros)', R(compValor)]].map(([l, v]) => (
+                        <div key={l} style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 10, color: '#15803D', fontWeight: 700, textTransform: 'uppercase' }}>{l}</div>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1235' }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Auto-calculated preview */}
-                {(form.cxs > 0 || form.litros > 0) && (
+                {(form.cxs > 0 || litrosEfetivo > 0) && (
                   <div style={{ display: 'flex', gap: 10, marginBottom: 16, background: '#EDE7F6', borderRadius: 12, padding: '12px 16px' }}>
                     {[
                       ['Litros/Cx', preview.litros_cx > 0 ? N(preview.litros_cx) : '—'],
@@ -411,7 +523,7 @@ export default function LancamentoDiarioPage() {
                 <div style={{ background: '#E8F5E9', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 800, color: '#2E7D32', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>💰 Receitas</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                    <Field label="Valor Litros (R$)" type="number" placeholder="0,00" value={form.valor_litros || ''} onChange={v => setF('valor_litros', Number(v))} step="0.01" />
+                    <ReadOnly label="Valor Litros (R$)" value={valorLitrosEfetivo > 0 ? R(valorLitrosEfetivo) : '—'} hint={compAtiva ? 'da composição' : undefined} color="#2E7D32" />
                     <Field label="Venda Açaí (R$)" type="number" placeholder="0,00" value={form.venda_acai || ''} onChange={v => setF('venda_acai', Number(v))} step="0.01" />
                     <Field label="Farinha/Tapioca (R$)" type="number" placeholder="0,00" value={form.farinha_tapioca || ''} onChange={v => setF('farinha_tapioca', Number(v))} step="0.01" />
                     <Field label="Camarão (R$)" type="number" placeholder="0,00" value={form.camarao || ''} onChange={v => setF('camarao', Number(v))} step="0.01" />
@@ -593,6 +705,19 @@ export default function LancamentoDiarioPage() {
 }
 
 // Reusable field component
+function ReadOnly({ label, value, hint, color = '#3B0A45' }: { label: string; value: string; hint?: string; color?: string }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>
+        {label}{hint && <span style={{ fontWeight: 500, color: '#9CA3AF', marginLeft: 4 }}>({hint})</span>}
+      </label>
+      <div style={{ width: '100%', padding: '9px 11px', border: '1.5px dashed #D6CCE0', borderRadius: 9, fontSize: 14, fontWeight: 800, color, background: '#FBF9FD', minHeight: 38, display: 'flex', alignItems: 'center' }}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
 function Field({ label, type, placeholder, value, onChange, required, step }: { label: string; type: string; placeholder?: string; value: string | number; onChange: (v: string) => void; required?: boolean; step?: string }) {
   return (
     <div>
