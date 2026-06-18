@@ -7,7 +7,6 @@ const nav = [
   { href: '/dashboard/lancamento', icon: '📝', label: 'Lançamento Diário' },
   { href: '/dashboard/producao', icon: '🫐', label: 'Produção / Barcadas' },
   { href: '/dashboard/produtos', icon: '🧴', label: 'Produtos' },
-  { href: '/dashboard/estoque', icon: '🗄️', label: 'Estoque' },
   { href: '/dashboard/vendas', icon: '🛒', label: 'Vendas' },
   { href: '/dashboard/caixa', icon: '💰', label: 'Caixa' },
   { href: '/dashboard/despesas', icon: '📋', label: 'Despesas' },

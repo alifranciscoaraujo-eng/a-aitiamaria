@@ -4,7 +4,13 @@ import {
   getProdutos, getEmbalagens, getBarcadas, setBarcadas,
   Produto, Embalagem, Barcada, BarcadaLinha,
 } from '@/lib/producaoData'
+import { loadEntries } from '@/lib/dailyData'
 import { formatCurrency } from '@/lib/utils'
+
+function parseBR(d: string) {
+  const [day, m, y] = d.split('/')
+  return new Date(Number(y), Number(m) - 1, Number(day))
+}
 
 function today() { return new Date().toLocaleDateString('pt-BR') }
 function nowISO() { return new Date().toISOString() }
@@ -19,6 +25,7 @@ export default function ProducaoPage() {
   const [produtos, setProdutosState] = useState<Produto[]>([])
   const [embalagens, setEmbalagensState] = useState<Embalagem[]>([])
   const [barcadas, setBarcadasState] = useState<Barcada[]>([])
+  const [historicas, setHistoricas] = useState<Barcada[]>([])
   const [loaded, setLoaded] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [viewBarcada, setViewBarcada] = useState<Barcada | null>(null)
@@ -32,7 +39,35 @@ export default function ProducaoPage() {
     setEmbalagensState(getEmbalagens())
     setBarcadasState(getBarcadas())
     setLoaded(true)
+    // Barcadas anteriores derivadas da planilha base (1 por dia de produção)
+    loadEntries().then(entries => {
+      const hist: Barcada[] = entries
+        .filter(e => e.cxs > 0)
+        .map(e => ({
+          id: `hist-${e.data}`,
+          numero: e.data,
+          data: e.data,
+          fornecedor: FORNECEDOR,
+          produto_id: '',
+          produto_nome: '—',
+          valor_litro_historico: e.custo_litro,
+          num_caixas: e.cxs,
+          linhas: [],
+          total_pacotes: 0,
+          total_litros: e.litros,
+          valor_total: e.valor_total,
+          responsavel: '',
+          observacoes: 'Importado da planilha base',
+          created_at: '',
+        }))
+      setHistoricas(hist)
+    })
   }, [])
+
+  // Barcadas manuais (localStorage) + históricas da planilha, ordenadas por data desc
+  const todasBarcadas = useMemo(() => {
+    return [...barcadas, ...historicas].sort((a, b) => parseBR(b.data).getTime() - parseBR(a.data).getTime())
+  }, [barcadas, historicas])
 
   const produtosAtivos = produtos.filter(p => p.status === 'ativo')
   const produtoSelecionado = produtosAtivos.find(p => p.id === form.produto_id) ?? null
@@ -52,9 +87,9 @@ export default function ProducaoPage() {
   const totalLitros = linhasCalc.reduce((s, l) => s + l.litros_calculados, 0)
   const valorTotal = linhasCalc.reduce((s, l) => s + l.total, 0)
 
-  const totalCxs = barcadas.reduce((s, b) => s + b.num_caixas, 0)
-  const totalLitrosProd = barcadas.reduce((s, b) => s + b.total_litros, 0)
-  const valorTotalProd = barcadas.reduce((s, b) => s + b.valor_total, 0)
+  const totalCxs = todasBarcadas.reduce((s, b) => s + b.num_caixas, 0)
+  const totalLitrosProd = todasBarcadas.reduce((s, b) => s + b.total_litros, 0)
+  const valorTotalProd = todasBarcadas.reduce((s, b) => s + b.valor_total, 0)
 
   function validate() {
     const errs: string[] = []
@@ -102,7 +137,7 @@ export default function ProducaoPage() {
         {/* KPIs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14, marginBottom: 24 }}>
           {[
-            { label: 'Total Barcadas', value: String(barcadas.length), accent: '#7A2E83', icon: '🫐' },
+            { label: 'Total Barcadas', value: String(todasBarcadas.length), accent: '#7A2E83', icon: '🫐' },
             { label: 'Total Caixas', value: String(totalCxs), accent: '#0891B2', icon: '📦' },
             { label: 'Total Litros', value: `${totalLitrosProd.toFixed(1)} L`, accent: '#059669', icon: '💧' },
             { label: 'Valor Total', value: formatCurrency(valorTotalProd), accent: '#1D4ED8', icon: '💰' },
@@ -134,26 +169,32 @@ export default function ProducaoPage() {
                 </tr>
               </thead>
               <tbody>
-                {barcadas.map((b, i) => (
-                  <tr key={b.id} style={{ borderBottom: i < barcadas.length - 1 ? '1px solid #F3F0F8' : 'none', background: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
-                    <td style={{ padding: '11px 14px', fontWeight: 700, color: '#5B145F' }}>{b.numero}</td>
+                {todasBarcadas.map((b, i) => {
+                  const isHist = b.id.startsWith('hist-')
+                  return (
+                  <tr key={b.id} style={{ borderBottom: i < todasBarcadas.length - 1 ? '1px solid #F3F0F8' : 'none', background: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
+                    <td style={{ padding: '11px 14px', fontWeight: 700, color: '#5B145F' }}>
+                      {b.numero}
+                      {isHist && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: '#7A2E83', background: '#F3E8FF', borderRadius: 5, padding: '1px 5px', verticalAlign: 'middle' }}>PLANILHA</span>}
+                    </td>
                     <td style={{ padding: '11px 14px', color: '#6B7280' }}>{b.data}</td>
                     <td style={{ padding: '11px 14px', fontWeight: 600 }}>{b.produto_nome}</td>
                     <td style={{ padding: '11px 14px', color: '#059669', fontWeight: 700 }}>{formatCurrency(b.valor_litro_historico)}</td>
                     <td style={{ padding: '11px 14px', textAlign: 'right' }}>{b.num_caixas}</td>
-                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{b.total_pacotes}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right' }}>{isHist ? '—' : b.total_pacotes}</td>
                     <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 600 }}>{b.total_litros.toFixed(1)} L</td>
                     <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#1D4ED8' }}>{formatCurrency(b.valor_total)}</td>
                     <td style={{ padding: '11px 14px' }}>
                       <div style={{ display: 'flex', gap: 5 }}>
                         <button onClick={() => setViewBarcada(b)} style={btnSm('#F9F4FB', '#7A2E83')}>👁️</button>
-                        <button onClick={() => setPrintBarcada(b)} style={btnSm('#EFF6FF', '#1D4ED8')}>🖨️</button>
-                        <button onClick={() => handleDelete(b.id)} style={btnSm('#FEE2E2', '#DC2626')}>🗑️</button>
+                        {!isHist && <button onClick={() => setPrintBarcada(b)} style={btnSm('#EFF6FF', '#1D4ED8')}>🖨️</button>}
+                        {!isHist && <button onClick={() => handleDelete(b.id)} style={btnSm('#FEE2E2', '#DC2626')}>🗑️</button>}
                       </div>
                     </td>
                   </tr>
-                ))}
-                {barcadas.length === 0 && (
+                  )
+                })}
+                {todasBarcadas.length === 0 && (
                   <tr><td colSpan={9} style={{ padding: 40, textAlign: 'center', color: '#9CA3AF' }}>Nenhuma barcada registrada. Clique em + Nova Barcada.</td></tr>
                 )}
               </tbody>
