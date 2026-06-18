@@ -318,7 +318,7 @@ export default function DashboardPage() {
                 <YAxis yAxisId="lucro" orientation="right" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={{ background: 'white', border: '1px solid #EDE8F5', borderRadius: 10, fontSize: 12 }}
-                  formatter={(v: unknown, name: string | number) => String(name) === 'Caixas' ? [`${Number(v).toFixed(1)} cx`, name] : [formatCurrency(Number(v)), name]}
+                  formatter={(v: unknown, name?: string | number) => String(name ?? '') === 'Caixas' ? [`${Number(v).toFixed(1)} cx`, name ?? ''] : [formatCurrency(Number(v)), name ?? '']}
                 />
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                 <Bar yAxisId="cxs" dataKey="cxs" name="Caixas" fill="url(#gradCxs)" stroke="#7A2E83" strokeWidth={1.5} radius={[4, 4, 0, 0]} />
