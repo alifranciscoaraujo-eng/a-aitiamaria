@@ -1,7 +1,7 @@
 ﻿'use client'
 import { useState, useMemo, useEffect } from 'react'
 import { useMobile } from '@/lib/useMobile'
-import { mockAlerts, mockProducts } from '@/lib/mockData'
+import { mockAlerts } from '@/lib/mockData'
 import { loadEntries, DailyEntry } from '@/lib/dailyData'
 import { formatCurrency } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
@@ -212,7 +212,7 @@ export default function DashboardPage() {
           <QuickActionBtn icon="📝" label="Lançamento Diário" href="/dashboard/lancamento" />
           <QuickActionBtn icon="🛒" label="Nova Venda" href="/dashboard/vendas" />
           <QuickActionBtn icon="🫐" label="Nova Barcada" href="/dashboard/producao" />
-          <QuickActionBtn icon="📦" label="Registrar Envase" href="/dashboard/envase" />
+          <QuickActionBtn icon="🧴" label="Produtos" href="/dashboard/produtos" />
           <QuickActionBtn icon="💰" label="Fechar Caixa" href="/dashboard/caixa" />
           <QuickActionBtn icon="📈" label="Relatórios" href="/dashboard/relatorios" />
         </div>
@@ -248,8 +248,6 @@ export default function DashboardPage() {
           <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} accent="#059669" compact={isMobile} />
           <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} accent="#D97706" compact={isMobile} />
           <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} accent="#7A2E83" compact={isMobile} />
-          <KpiCard icon="🍚" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} accent="#16A34A" compact={isMobile} />
-          <KpiCard icon="🦐" label="Camarão" value={formatCurrency(kpi.camarao)} accent="#EA580C" compact={isMobile} />
         </div>
 
         {/* Gráficos row 1 */}
@@ -328,25 +326,29 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ background: 'white', borderRadius: 16, padding: '20px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>📦 Estoque Atual</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Nível de produtos em estoque</div>
-            {mockProducts.slice(0, 7).map(p => {
-              const pct = Math.min(100, (p.current_stock / (p.minimum_stock * 3)) * 100)
-              const low = p.current_stock <= p.minimum_stock
-              return (
-                <div key={p.id} style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>🧾 Despesas por Categoria</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Período selecionado · total {formatCurrency(kpi.gastos + kpi.farinha + kpi.camarao)}</div>
+            {(() => {
+              const cats = [
+                { label: 'Gastos operacionais', value: kpi.gastos, color: '#7A2E83' },
+                { label: 'Farinha / Tapioca', value: kpi.farinha, color: '#16A34A' },
+                { label: 'Camarão', value: kpi.camarao, color: '#EA580C' },
+              ].filter(c => c.value > 0).sort((a, b) => b.value - a.value)
+              const total = cats.reduce((s, c) => s + c.value, 0)
+              if (total === 0) return <div style={{ fontSize: 12, color: '#9CA3AF' }}>Sem despesas no período.</div>
+              return cats.map(c => (
+                <div key={c.label} style={{ marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                    <span style={{ fontWeight: 500, color: '#374151' }}>{p.name}</span>
-                    <span style={{ fontWeight: 700, color: low ? '#D32F2F' : '#2E7D32', fontSize: 11 }}>
-                      {p.current_stock} un {low && '⚠️'}
-                    </span>
+                    <span style={{ fontWeight: 500, color: '#374151' }}>{c.label}</span>
+                    <span style={{ fontWeight: 700, color: '#D32F2F', fontSize: 12 }}>{formatCurrency(c.value)}</span>
                   </div>
-                  <div style={{ height: 5, background: '#F0EAF5', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: low ? '#D32F2F' : '#7A2E83', borderRadius: 4, transition: 'width 0.5s' }} />
+                  <div style={{ height: 6, background: '#F0EAF5', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ width: `${(c.value / total) * 100}%`, height: '100%', background: c.color, borderRadius: 4, transition: 'width 0.5s' }} />
                   </div>
+                  <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{((c.value / total) * 100).toFixed(1)}% do total</div>
                 </div>
-              )
-            })}
+              ))
+            })()}
           </div>
         </div>
 
