@@ -12,9 +12,9 @@ interface ExpenseRow {
   origem: 'planilha' | 'manual'
 }
 
-const categories = ['Gastos operacionais', 'Farinha / Tapioca', 'Camarão', 'Compra de açaí', 'Embalagens', 'Gelo', 'Energia', 'Mão de obra', 'Aluguel', 'Outros']
+const categories = ['Gastos operacionais', 'Compra de açaí', 'Embalagens', 'Gelo', 'Energia', 'Mão de obra', 'Aluguel', 'Outros']
 const catColors: Record<string, string> = {
-  'Gastos operacionais': 'badge-yellow', 'Farinha / Tapioca': 'badge-blue', 'Camarão': 'badge-red',
+  'Gastos operacionais': 'badge-yellow',
   'Compra de açaí': 'badge-purple', 'Embalagens': 'badge-blue', 'Mão de obra': 'badge-green', 'Aluguel': 'badge-gray',
 }
 const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
@@ -28,13 +28,11 @@ function monthKey(d: string) {
   return `${y}-${m}`
 }
 
-// Build expense rows from the base spreadsheet (daily_entries): gastos, farinha/tapioca, camarão
+// Despesas vêm da coluna GASTOS da planilha (farinha/tapioca e camarão são vendas, não despesas)
 function deriveFromEntries(entries: DailyEntry[]): ExpenseRow[] {
   const rows: ExpenseRow[] = []
   for (const e of entries) {
     if (e.gastos > 0) rows.push({ id: `g-${e.data}`, date: e.data, category: 'Gastos operacionais', description: 'Gastos operacionais do dia', amount: e.gastos, origem: 'planilha' })
-    if (e.farinha_tapioca > 0) rows.push({ id: `f-${e.data}`, date: e.data, category: 'Farinha / Tapioca', description: 'Compra de farinha / tapioca', amount: e.farinha_tapioca, origem: 'planilha' })
-    if (e.camarao > 0) rows.push({ id: `c-${e.data}`, date: e.data, category: 'Camarão', description: 'Compra de camarão', amount: e.camarao, origem: 'planilha' })
   }
   return rows
 }

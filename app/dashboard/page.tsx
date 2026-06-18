@@ -247,6 +247,8 @@ export default function DashboardPage() {
           />
           <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} accent="#059669" compact={isMobile} />
           <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} accent="#D97706" compact={isMobile} />
+          <KpiCard icon="🍚" label="Venda Farinha/Tapioca" value={formatCurrency(kpi.farinha)} accent="#16A34A" compact={isMobile} />
+          <KpiCard icon="🦐" label="Venda Camarão" value={formatCurrency(kpi.camarao)} accent="#EA580C" compact={isMobile} />
           <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} accent="#7A2E83" compact={isMobile} />
         </div>
 
@@ -326,21 +328,21 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ background: 'white', borderRadius: 16, padding: '20px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>🧾 Despesas por Categoria</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Período selecionado · total {formatCurrency(kpi.gastos + kpi.farinha + kpi.camarao)}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>💵 Composição da Receita</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Período selecionado · total {formatCurrency(kpi.receita)}</div>
             {(() => {
               const cats = [
-                { label: 'Gastos operacionais', value: kpi.gastos, color: '#7A2E83' },
+                { label: 'Venda Açaí', value: kpi.vendaAcai, color: '#7A2E83' },
                 { label: 'Farinha / Tapioca', value: kpi.farinha, color: '#16A34A' },
                 { label: 'Camarão', value: kpi.camarao, color: '#EA580C' },
               ].filter(c => c.value > 0).sort((a, b) => b.value - a.value)
               const total = cats.reduce((s, c) => s + c.value, 0)
-              if (total === 0) return <div style={{ fontSize: 12, color: '#9CA3AF' }}>Sem despesas no período.</div>
+              if (total === 0) return <div style={{ fontSize: 12, color: '#9CA3AF' }}>Sem vendas no período.</div>
               return cats.map(c => (
                 <div key={c.label} style={{ marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                     <span style={{ fontWeight: 500, color: '#374151' }}>{c.label}</span>
-                    <span style={{ fontWeight: 700, color: '#D32F2F', fontSize: 12 }}>{formatCurrency(c.value)}</span>
+                    <span style={{ fontWeight: 700, color: '#1D4ED8', fontSize: 12 }}>{formatCurrency(c.value)}</span>
                   </div>
                   <div style={{ height: 6, background: '#F0EAF5', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{ width: `${(c.value / total) * 100}%`, height: '100%', background: c.color, borderRadius: 4, transition: 'width 0.5s' }} />
