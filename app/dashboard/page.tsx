@@ -19,6 +19,30 @@ function parseDate(d: string) {
 
 type Period = '7d' | '30d' | 'mes' | 'ano' | 'custom'
 
+function aggregate(entries: DailyEntry[]) {
+  const diasProd = entries.filter(e => e.cxs > 0).length
+  const cxs = entries.reduce((s, e) => s + e.cxs, 0)
+  const litros = entries.reduce((s, e) => s + e.litros, 0)
+  const custo = entries.reduce((s, e) => s + e.valor_total, 0)
+  const valorLitros = entries.reduce((s, e) => s + e.valor_litros, 0)
+  const lucro = entries.reduce((s, e) => s + e.lucro_total, 0)
+  const gastos = entries.reduce((s, e) => s + e.gastos, 0)
+  const vendaAcai = entries.reduce((s, e) => s + e.venda_acai, 0)
+  const farinha = entries.reduce((s, e) => s + e.farinha_tapioca, 0)
+  const camarao = entries.reduce((s, e) => s + e.camarao, 0)
+  const receita = vendaAcai + farinha + camarao
+  const margem = receita > 0 ? (lucro / receita) * 100 : 0
+  const custoPorLitro = litros > 0 ? custo / litros : 0
+  const lucroMedioCx = cxs > 0 ? lucro / cxs : 0
+  return { diasProd, cxs, litros, custo, valorLitros, lucro, gastos, vendaAcai, farinha, camarao, receita, margem, custoPorLitro, lucroMedioCx, dias: entries.length }
+}
+
+// variação % vs período anterior; undefined quando não há base de comparação
+function pctDelta(cur: number, prev: number): number | undefined {
+  if (!prev) return undefined
+  return ((cur - prev) / Math.abs(prev)) * 100
+}
+
 function QuickActionBtn({ icon, label, href }: { icon: string; label: string; href: string }) {
   const router = useRouter()
   return (
@@ -44,9 +68,58 @@ function QuickActionBtn({ icon, label, href }: { icon: string; label: string; hr
   )
 }
 
-function KpiCard({ icon, label, value, sub, accent, badge, badgeColor, compact }: {
+// Chip de variação vs período anterior
+function Trend({ delta, goodWhenUp, size = 'sm' }: { delta?: number; goodWhenUp?: boolean; size?: 'sm' | 'lg' }) {
+  if (delta === undefined) return null
+  const up = delta >= 0
+  const flat = Math.abs(delta) < 0.5
+  const good = up === !!goodWhenUp
+  const color = flat ? '#9CA3AF' : good ? '#059669' : '#DC2626'
+  const arrow = flat ? '→' : up ? '▲' : '▼'
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+      fontSize: size === 'lg' ? 12 : 10, fontWeight: 700, padding: size === 'lg' ? '3px 9px' : '2px 7px',
+      borderRadius: 20, background: color + '14', color, border: `1px solid ${color}28`, whiteSpace: 'nowrap',
+    }}>{arrow} {Math.abs(delta).toFixed(0)}%</span>
+  )
+}
+
+function HeroCard({ icon, label, value, accent, delta, goodWhenUp, semaforo }: {
+  icon: string; label: string; value: string; accent: string
+  delta?: number; goodWhenUp?: boolean; semaforo?: string
+}) {
+  return (
+    <div style={{
+      background: 'white', borderRadius: 16, padding: '20px 22px', border: '1px solid #EDE8F5',
+      boxShadow: '0 2px 10px rgba(59,10,69,0.07)', position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 5, background: semaforo ?? accent }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 11, background: (semaforo ?? accent) + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{icon}</div>
+          <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+        </div>
+        <Trend delta={delta} goodWhenUp={goodWhenUp} size="lg" />
+      </div>
+      <div style={{ fontSize: 30, fontWeight: 800, color: '#1F1235', lineHeight: 1, letterSpacing: '-0.02em' }}>{value}</div>
+      <div style={{ fontSize: 11, color: '#B0B8C1', marginTop: 6 }}>vs. período anterior</div>
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#7A2E83', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, paddingLeft: 2 }}>{title}</div>
+      {children}
+    </div>
+  )
+}
+
+function KpiCard({ icon, label, value, sub, accent, badge, badgeColor, compact, delta, goodWhenUp }: {
   icon: string; label: string; value: string; sub?: string; accent?: string
-  badge?: string; badgeColor?: string; compact?: boolean
+  badge?: string; badgeColor?: string; compact?: boolean; delta?: number; goodWhenUp?: boolean
 }) {
   const ac = accent ?? '#7A2E83'
   return (
@@ -67,13 +140,13 @@ function KpiCard({ icon, label, value, sub, accent, badge, badgeColor, compact }
           width: compact ? 32 : 36, height: compact ? 32 : 36, borderRadius: 9,
           background: ac + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 18,
         }}>{icon}</div>
-        {badge && (
+        {badge ? (
           <span style={{
             fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
             background: badgeColor ? badgeColor + '18' : '#E8F5E9',
             color: badgeColor ?? '#2E7D32', border: `1px solid ${badgeColor ? badgeColor + '30' : '#C8E6C9'}`,
           }}>{badge}</span>
-        )}
+        ) : <Trend delta={delta} goodWhenUp={goodWhenUp} />}
       </div>
 
       <div>
@@ -116,23 +189,25 @@ export default function DashboardPage() {
     [allEntries, periodStart, periodEnd]
   )
 
-  const kpi = useMemo(() => {
-    const diasProd = filtered.filter(e => e.cxs > 0).length
-    const cxs = filtered.reduce((s, e) => s + e.cxs, 0)
-    const litros = filtered.reduce((s, e) => s + e.litros, 0)
-    const custo = filtered.reduce((s, e) => s + e.valor_total, 0)
-    const valorLitros = filtered.reduce((s, e) => s + e.valor_litros, 0)
-    const lucro = filtered.reduce((s, e) => s + e.lucro_total, 0)
-    const gastos = filtered.reduce((s, e) => s + e.gastos, 0)
-    const vendaAcai = filtered.reduce((s, e) => s + e.venda_acai, 0)
-    const farinha = filtered.reduce((s, e) => s + e.farinha_tapioca, 0)
-    const camarao = filtered.reduce((s, e) => s + e.camarao, 0)
-    const receita = vendaAcai + farinha + camarao
-    const margem = receita > 0 ? (lucro / receita) * 100 : 0
-    const custoPorLitro = litros > 0 ? custo / litros : 0
-    const lucroMedioCx = cxs > 0 ? lucro / cxs : 0
-    return { diasProd, cxs, litros, custo, valorLitros, lucro, gastos, vendaAcai, farinha, camarao, receita, margem, custoPorLitro, lucroMedioCx, dias: filtered.length }
-  }, [filtered])
+  const kpi = useMemo(() => aggregate(filtered), [filtered])
+
+  // Período anterior (mesma janela) para comparação
+  const prevRange = useMemo(() => {
+    if (period === 'mes') {
+      return { s: new Date(today.getFullYear(), today.getMonth() - 1, 1), e: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate()) }
+    }
+    if (period === 'ano') {
+      return { s: new Date(today.getFullYear() - 1, 0, 1), e: new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()) }
+    }
+    const lenMs = periodEnd.getTime() - periodStart.getTime()
+    const e = new Date(periodStart.getTime() - 86400000)
+    const s = new Date(e.getTime() - lenMs)
+    return { s, e }
+  }, [period, periodStart, periodEnd])
+
+  const prevKpi = useMemo(() => aggregate(
+    allEntries.filter(en => { const d = parseDate(en.data); return d >= prevRange.s && d <= prevRange.e })
+  ), [allEntries, prevRange])
 
   // Daily chart — últimos 14 dias do período
   const dailyChart = useMemo(() => {
@@ -234,23 +309,46 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* KPI Cards — dados reais */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(175px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
-          <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} accent="#7A2E83" compact={isMobile} />
-          <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} accent="#0891B2" compact={isMobile} />
-          <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} accent="#DC2626" compact={isMobile} />
-          <KpiCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} accent="#1D4ED8" compact={isMobile} />
-          <KpiCard icon="💰" label="Lucro Total" value={formatCurrency(kpi.lucro)} accent="#059669"
-            badge={kpi.margem > 0 ? `${kpi.margem.toFixed(1)}%` : undefined}
-            badgeColor={kpi.margem >= 30 ? '#2E7D32' : '#F57F17'}
-            compact={isMobile}
-          />
-          <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} accent="#059669" compact={isMobile} />
-          <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} accent="#D97706" compact={isMobile} />
-          <KpiCard icon="🍚" label="Venda Farinha/Tapioca" value={formatCurrency(kpi.farinha)} accent="#16A34A" compact={isMobile} />
-          <KpiCard icon="🦐" label="Venda Camarão" value={formatCurrency(kpi.camarao)} accent="#EA580C" compact={isMobile} />
-          <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} accent="#7A2E83" compact={isMobile} />
+        {/* Linha herói — indicadores principais */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? 10 : 16, marginBottom: 18 }}>
+          <HeroCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} accent="#1D4ED8" delta={pctDelta(kpi.receita, prevKpi.receita)} goodWhenUp />
+          <HeroCard icon="💰" label="Lucro Total" value={formatCurrency(kpi.lucro)} accent="#059669" delta={pctDelta(kpi.lucro, prevKpi.lucro)} goodWhenUp />
+          <HeroCard icon="🎯" label="Margem" value={`${kpi.margem.toFixed(1)}%`} accent="#059669"
+            semaforo={kpi.margem >= 30 ? '#059669' : kpi.margem >= 15 ? '#D97706' : '#DC2626'}
+            delta={pctDelta(kpi.margem, prevKpi.margem)} goodWhenUp />
         </div>
+
+        {/* KPIs secundários agrupados por seção */}
+        {(() => {
+          const grid = { display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? 8 : 14 } as const
+          return (
+            <>
+              <Section title="Produção">
+                <div style={grid}>
+                  <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} accent="#7A2E83" compact={isMobile} delta={pctDelta(kpi.cxs, prevKpi.cxs)} goodWhenUp />
+                  <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} accent="#0891B2" compact={isMobile} delta={pctDelta(kpi.litros, prevKpi.litros)} goodWhenUp />
+                  <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} accent="#D97706" compact={isMobile} delta={pctDelta(kpi.custoPorLitro, prevKpi.custoPorLitro)} goodWhenUp={false} />
+                </div>
+              </Section>
+
+              <Section title="Financeiro">
+                <div style={grid}>
+                  <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} accent="#DC2626" compact={isMobile} delta={pctDelta(kpi.custo, prevKpi.custo)} goodWhenUp={false} />
+                  <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} accent="#059669" compact={isMobile} delta={pctDelta(kpi.lucroMedioCx, prevKpi.lucroMedioCx)} goodWhenUp />
+                  <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} accent="#7A2E83" compact={isMobile} delta={pctDelta(kpi.gastos, prevKpi.gastos)} goodWhenUp={false} />
+                </div>
+              </Section>
+
+              <Section title="Vendas">
+                <div style={grid}>
+                  <KpiCard icon="🛒" label="Venda Açaí" value={formatCurrency(kpi.vendaAcai)} accent="#1D4ED8" compact={isMobile} delta={pctDelta(kpi.vendaAcai, prevKpi.vendaAcai)} goodWhenUp />
+                  <KpiCard icon="🍚" label="Venda Farinha/Tapioca" value={formatCurrency(kpi.farinha)} accent="#16A34A" compact={isMobile} delta={pctDelta(kpi.farinha, prevKpi.farinha)} goodWhenUp />
+                  <KpiCard icon="🦐" label="Venda Camarão" value={formatCurrency(kpi.camarao)} accent="#EA580C" compact={isMobile} delta={pctDelta(kpi.camarao, prevKpi.camarao)} goodWhenUp />
+                </div>
+              </Section>
+            </>
+          )
+        })()}
 
         {/* Gráficos row 1 */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: isMobile ? 10 : 16, marginBottom: isMobile ? 10 : 16 }}>
