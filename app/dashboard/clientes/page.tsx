@@ -11,9 +11,20 @@ const typeColors: Record<string, string> = {
 export default function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers)
   const [showForm, setShowForm] = useState(false)
+  const [editing, setEditing] = useState<Customer | null>(null)
   const [selected, setSelected] = useState<Customer | null>(null)
   const [form, setForm] = useState({ name: '', phone: '', address: '', customer_type: 'consumidor_final' as Customer['customer_type'], notes: '' })
   const [search, setSearch] = useState('')
+
+  function openEdit(c: Customer) {
+    setEditing(c)
+    setForm({ name: c.name, phone: c.phone, address: c.address || '', customer_type: c.customer_type, notes: c.notes || '' })
+    setShowForm(true)
+  }
+
+  function handleDelete(c: Customer) {
+    if (confirm(`Excluir "${c.name}"?`)) setCustomers(prev => prev.filter(x => x.id !== c.id))
+  }
 
   function getCustomerRevenue(id: string) {
     return mockSales.filter(s => s.customer_id === id && s.status === 'ativa').reduce((s, v) => s + v.net_total, 0)
@@ -24,9 +35,14 @@ export default function ClientesPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const c: Customer = { id: `c${Date.now()}`, ...form, created_at: new Date().toISOString() }
-    setCustomers(prev => [c, ...prev])
+    if (editing) {
+      setCustomers(prev => prev.map(x => x.id === editing.id ? { ...x, ...form } : x))
+    } else {
+      const c: Customer = { id: `c${Date.now()}`, ...form, created_at: new Date().toISOString() }
+      setCustomers(prev => [c, ...prev])
+    }
     setShowForm(false)
+    setEditing(null)
     setForm({ name: '', phone: '', address: '', customer_type: 'consumidor_final', notes: '' })
   }
 
@@ -44,7 +60,7 @@ export default function ClientesPage() {
 
         {showForm && (
           <div style={{ background: 'white', borderRadius: 16, padding: 24, marginBottom: 20, boxShadow: '0 4px 20px rgba(91,20,95,0.12)', border: '1.5px solid #F0EAF5' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#3B0A45', margin: '0 0 16px' }}>Novo Cliente</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#3B0A45', margin: '0 0 16px' }}>{editing ? '✏️ Editar Cliente' : 'Novo Cliente'}</h3>
             <form onSubmit={handleSubmit}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 12 }}>
                 {[
@@ -70,7 +86,7 @@ export default function ClientesPage() {
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="submit" className="btn-primary">💾 Salvar</button>
-                <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
+                <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); setEditing(null) }}>Cancelar</button>
               </div>
             </form>
           </div>
@@ -93,6 +109,16 @@ export default function ClientesPage() {
                 <span className={`badge ${typeColors[c.customer_type] ?? 'badge-gray'}`}>{customerTypeLabel[c.customer_type]}</span>
               </div>
               {c.address && <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 10 }}>📍 {c.address}</div>}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }} onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={() => openEdit(c)}
+                  style={{ flex: 1, background: '#EDE8F5', border: 'none', borderRadius: 8, padding: '6px 0', fontSize: 12, fontWeight: 700, color: '#5B145F', cursor: 'pointer' }}
+                >✏️ Editar</button>
+                <button
+                  onClick={() => handleDelete(c)}
+                  style={{ flex: 1, background: '#FEE2E2', border: 'none', borderRadius: 8, padding: '6px 0', fontSize: 12, fontWeight: 700, color: '#DC2626', cursor: 'pointer' }}
+                >🗑️ Excluir</button>
+              </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <div style={{ flex: 1, textAlign: 'center', background: '#F4E8F7', borderRadius: 8, padding: '8px 0' }}>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#5B145F' }}>{getCustomerOrders(c.id)}</div>

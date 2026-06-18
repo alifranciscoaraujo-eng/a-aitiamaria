@@ -297,27 +297,34 @@ export default function LancamentoDiarioPage() {
         {/* KPI strip */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
           {[
-            { icon: '📅', label: 'Dias c/ produção', value: `${totals.dias_producao}`, sub: `de ${filtered.length} dias` },
-            { icon: '📦', label: 'Total Caixas', value: N(totals.cxs, 1) },
-            { icon: '🫐', label: 'Total Litros', value: `${N(totals.litros, 0)}L` },
-            { icon: '💵', label: 'Custo Total Açaí', value: R(totals.valor_total), color: '#D32F2F' },
-            { icon: '🛒', label: 'Venda Açaí (cx)', value: R(totals.venda_acai), color: '#2E7D32' },
-            { icon: '💰', label: 'Lucro Total', value: R(totals.lucro_total), color: '#2E7D32' },
-            { icon: '🌾', label: 'Farinha/Tapioca', value: R(totals.farinha_tapioca) },
-            { icon: '🦐', label: 'Camarão', value: R(totals.camarao) },
-            { icon: '📋', label: 'Gastos', value: R(totals.gastos), color: '#D32F2F' },
-            { icon: '📈', label: 'Receita Total', value: R(totals.receita_total), color: '#5B145F' },
+            { icon: '📅', label: 'Dias c/ produção', value: `${totals.dias_producao}`, sub: `de ${filtered.length} dias`, accent: '#7A2E83' },
+            { icon: '📦', label: 'Total Caixas', value: N(totals.cxs, 1), accent: '#7A2E83' },
+            { icon: '🫐', label: 'Total Litros', value: `${N(totals.litros, 0)}L`, accent: '#0891B2' },
+            { icon: '💵', label: 'Custo Total Açaí', value: R(totals.valor_total), accent: '#DC2626' },
+            { icon: '🛒', label: 'Venda Açaí (cx)', value: R(totals.venda_acai), accent: '#059669' },
+            { icon: '💰', label: 'Lucro Total', value: R(totals.lucro_total), accent: '#059669' },
+            { icon: '🌾', label: 'Farinha/Tapioca', value: R(totals.farinha_tapioca), accent: '#16A34A' },
+            { icon: '🦐', label: 'Camarão', value: R(totals.camarao), accent: '#EA580C' },
+            { icon: '📋', label: 'Gastos', value: R(totals.gastos), accent: '#DC2626' },
+            { icon: '📈', label: 'Receita Total', value: R(totals.receita_total), accent: '#1D4ED8' },
           ].map((c, i) => (
-            <div key={i} className="card" style={{ textAlign: 'center', padding: '14px 10px' }}>
-              <div style={{ fontSize: 22, marginBottom: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: 30 }}>
-                {c.icon === 'acai'
-                  ? <AcaiIcon />
-                  : c.icon
-                }
+            <div key={i} style={{
+              background: 'white', borderRadius: 14, padding: '16px 14px',
+              border: '1px solid #EDE8F5', display: 'flex', flexDirection: 'column', gap: 8,
+              boxShadow: '0 1px 4px rgba(59,10,69,0.06)', position: 'relative', overflow: 'hidden',
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: c.accent, borderRadius: '14px 14px 0 0' }} />
+              <div style={{
+                width: 36, height: 36, borderRadius: 9, background: c.accent + '18',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, marginTop: 2,
+              }}>
+                {c.icon === 'acai' ? <AcaiIcon /> : c.icon}
               </div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: c.color ?? '#3B0A45', lineHeight: 1.1 }}>{c.value}</div>
-              <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 3 }}>{c.label}</div>
-              {c.sub && <div style={{ fontSize: 10, color: '#C4B5D0' }}>{c.sub}</div>}
+              <div>
+                <div style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{c.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1235', lineHeight: 1, letterSpacing: '-0.02em' }}>{c.value}</div>
+                {c.sub && <div style={{ fontSize: 10, color: '#B0B8C1', marginTop: 3 }}>{c.sub}</div>}
+              </div>
             </div>
           ))}
         </div>

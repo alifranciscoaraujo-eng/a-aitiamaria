@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useMemo, useEffect } from 'react'
 import { useMobile } from '@/lib/useMobile'
 import { mockAlerts, mockProducts } from '@/lib/mockData'
@@ -6,7 +6,7 @@ import { loadEntries, DailyEntry } from '@/lib/dailyData'
 import { formatCurrency } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  AreaChart, Area, BarChart, Bar, ComposedChart, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 
@@ -44,28 +44,43 @@ function QuickActionBtn({ icon, label, href }: { icon: string; label: string; hr
   )
 }
 
-function KpiCard({ icon, label, value, sub, color, badge, badgeColor, compact }: {
-  icon: string; label: string; value: string; sub?: string; color?: string
+function KpiCard({ icon, label, value, sub, accent, badge, badgeColor, compact }: {
+  icon: string; label: string; value: string; sub?: string; accent?: string
   badge?: string; badgeColor?: string; compact?: boolean
 }) {
+  const ac = accent ?? '#7A2E83'
   return (
     <div style={{
-      background: 'white', borderRadius: 14, padding: compact ? '12px 14px' : '18px 20px',
-      border: '1px solid #EDE8F5', display: 'flex', flexDirection: 'column', gap: compact ? 4 : 6,
+      background: 'white', borderRadius: 14,
+      padding: compact ? '12px 14px' : '16px 18px',
+      border: '1px solid #EDE8F5',
+      display: 'flex', flexDirection: 'column', gap: compact ? 6 : 8,
       boxShadow: '0 1px 4px rgba(59,10,69,0.06)',
+      position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 20 }}>{icon}</span>
+      {/* accent bar */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: ac, borderRadius: '14px 14px 0 0' }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+        {/* icon with tinted background */}
+        <div style={{
+          width: compact ? 32 : 36, height: compact ? 32 : 36, borderRadius: 9,
+          background: ac + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: compact ? 16 : 18,
+        }}>{icon}</div>
         {badge && (
           <span style={{
-            fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
-            background: badgeColor ?? '#E8F5E9', color: badgeColor ? 'white' : '#2E7D32',
+            fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
+            background: badgeColor ? badgeColor + '18' : '#E8F5E9',
+            color: badgeColor ?? '#2E7D32', border: `1px solid ${badgeColor ? badgeColor + '30' : '#C8E6C9'}`,
           }}>{badge}</span>
         )}
       </div>
-      <div style={{ fontSize: compact ? 10 : 11, color: '#9CA3AF', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-      <div style={{ fontSize: compact ? 17 : 22, fontWeight: 800, color: color ?? '#3B0A45', lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#B0B8C1' }}>{sub}</div>}
+
+      <div>
+        <div style={{ fontSize: compact ? 10 : 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{label}</div>
+        <div style={{ fontSize: compact ? 18 : 22, fontWeight: 800, color: '#1F1235', lineHeight: 1, letterSpacing: '-0.02em' }}>{value}</div>
+        {sub && <div style={{ fontSize: 11, color: '#B0B8C1', marginTop: 4 }}>{sub}</div>}
+      </div>
     </div>
   )
 }
@@ -130,21 +145,21 @@ export default function DashboardPage() {
     }))
   }, [filtered])
 
-  // Monthly chart
+  // Monthly chart — sempre usa allEntries para mostrar histórico completo
   const monthlyChart = useMemo(() => {
-    const byMonth: Record<string, { mes: string; lucro: number; custo: number; receita: number; cxs: number }> = {}
-    filtered.forEach(e => {
+    const byMonth: Record<string, { key: string; mes: string; lucro: number; custo: number; receita: number; cxs: number }> = {}
+    allEntries.forEach(e => {
       const [, m, y] = e.data.split('/')
-      const key = `${m}/${y}`
+      const key = `${y}-${m}`
       const label = `${months[Number(m) - 1]}/${y?.slice(2)}`
-      if (!byMonth[key]) byMonth[key] = { mes: label, lucro: 0, custo: 0, receita: 0, cxs: 0 }
+      if (!byMonth[key]) byMonth[key] = { key, mes: label, lucro: 0, custo: 0, receita: 0, cxs: 0 }
       byMonth[key].lucro += e.lucro_total
       byMonth[key].custo += e.valor_total
       byMonth[key].receita += e.venda_acai + e.farinha_tapioca + e.camarao
       byMonth[key].cxs += e.cxs
     })
-    return Object.values(byMonth)
-  }, [filtered])
+    return Object.values(byMonth).sort((a, b) => a.key.localeCompare(b.key))
+  }, [allEntries])
 
   const PERIODS: { key: Period; label: string }[] = [
     { key: '7d', label: 'Últimos 7 dias' },
@@ -221,20 +236,20 @@ export default function DashboardPage() {
 
         {/* KPI Cards — dados reais */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(175px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
-          <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} compact={isMobile} />
-          <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} compact={isMobile} />
-          <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} color="#D32F2F" compact={isMobile} />
-          <KpiCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} color="#1565C0" compact={isMobile} />
-          <KpiCard icon="💰" label="Lucro Total" value={formatCurrency(kpi.lucro)} color="#2E7D32"
+          <KpiCard icon="📦" label="Caixas Processadas" value={kpi.cxs.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} sub={`${kpi.diasProd} dias`} accent="#7A2E83" compact={isMobile} />
+          <KpiCard icon="🫐" label="Litros Produzidos" value={`${kpi.litros.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} L`} accent="#0891B2" compact={isMobile} />
+          <KpiCard icon="💸" label="Custo Açaí" value={formatCurrency(kpi.custo)} accent="#DC2626" compact={isMobile} />
+          <KpiCard icon="💵" label="Receita Total" value={formatCurrency(kpi.receita)} accent="#1D4ED8" compact={isMobile} />
+          <KpiCard icon="💰" label="Lucro Total" value={formatCurrency(kpi.lucro)} accent="#059669"
             badge={kpi.margem > 0 ? `${kpi.margem.toFixed(1)}%` : undefined}
             badgeColor={kpi.margem >= 30 ? '#2E7D32' : '#F57F17'}
             compact={isMobile}
           />
-          <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} compact={isMobile} />
-          <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} compact={isMobile} />
-          <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} color="#7A2E83" compact={isMobile} />
-          <KpiCard icon="🍚" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} compact={isMobile} />
-          <KpiCard icon="🦐" label="Camarão" value={formatCurrency(kpi.camarao)} compact={isMobile} />
+          <KpiCard icon="📊" label="Lucro Médio / Cx" value={formatCurrency(kpi.lucroMedioCx)} accent="#059669" compact={isMobile} />
+          <KpiCard icon="🔢" label="Custo / Litro" value={formatCurrency(kpi.custoPorLitro)} accent="#D97706" compact={isMobile} />
+          <KpiCard icon="🧾" label="Gastos Operac." value={formatCurrency(kpi.gastos)} accent="#7A2E83" compact={isMobile} />
+          <KpiCard icon="🍚" label="Farinha / Tapioca" value={formatCurrency(kpi.farinha)} accent="#16A34A" compact={isMobile} />
+          <KpiCard icon="🦐" label="Camarão" value={formatCurrency(kpi.camarao)} accent="#EA580C" compact={isMobile} />
         </div>
 
         {/* Gráficos row 1 */}
@@ -287,16 +302,28 @@ export default function DashboardPage() {
         {/* Gráfico caixas por mês + estoque */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 10 : 16, marginBottom: isMobile ? 10 : 16 }}>
           <div style={{ background: 'white', borderRadius: 16, padding: '20px 20px 12px', border: '1px solid #EDE8F5', boxShadow: '0 1px 4px rgba(59,10,69,0.05)' }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 4 }}>Caixas por Mês</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Volume de produção mensal</div>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={monthlyChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F0EAF5" />
-                <XAxis dataKey="mes" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="cxs" stroke="#7A2E83" strokeWidth={2.5} dot={{ fill: '#7A2E83', r: 4 }} name="Caixas" />
-              </LineChart>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#3B0A45', marginBottom: 2 }}>Caixas &amp; Lucro por Mês</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 14 }}>Evolução histórica — todos os meses</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <ComposedChart data={monthlyChart} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradCxs" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#7A2E83" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#7A2E83" stopOpacity={0.04} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F3F0F8" vertical={false} />
+                <XAxis dataKey="mes" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="cxs" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="lucro" orientation="right" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} />
+                <Tooltip
+                  contentStyle={{ background: 'white', border: '1px solid #EDE8F5', borderRadius: 10, fontSize: 12 }}
+                  formatter={(v: unknown, name: string) => name === 'Caixas' ? [`${Number(v).toFixed(1)} cx`, name] : [formatCurrency(Number(v)), name]}
+                />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                <Bar yAxisId="cxs" dataKey="cxs" name="Caixas" fill="url(#gradCxs)" stroke="#7A2E83" strokeWidth={1.5} radius={[4, 4, 0, 0]} />
+                <Line yAxisId="lucro" type="monotone" dataKey="lucro" name="Lucro" stroke="#059669" strokeWidth={2.5} dot={{ fill: '#059669', r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
 

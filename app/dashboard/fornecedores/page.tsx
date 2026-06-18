@@ -137,7 +137,8 @@ export default function FornecedoresPage() {
         {/* Full list */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #F4E8F7', fontWeight: 700, fontSize: 14, color: '#3B0A45' }}>Todos os Fornecedores</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 800, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ background: '#FAFAFA', borderBottom: '1px solid #F0EAF5' }}>
                 {['Nome', 'Localidade', 'Tipo', 'Preço/Cx', 'Caixas', 'Litros', 'Custo/L', 'Rend./Cx', 'Avaliação', 'Ações'].map(h => (
@@ -158,12 +159,25 @@ export default function FornecedoresPage() {
                   <td style={{ padding: '12px 14px' }}>{getAvgYield(s.id) > 0 ? `${getAvgYield(s.id).toFixed(1)}L` : '—'}</td>
                   <td style={{ padding: '12px 14px' }}>{'⭐'.repeat(s.rating)}</td>
                   <td style={{ padding: '12px 14px' }}>
-                    <button onClick={() => setSelected(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>👁️</button>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <button onClick={() => setSelected(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>👁️</button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Excluir "${s.name}"?`)) setSuppliers(prev => prev.filter(x => x.id !== s.id))
+                        }}
+                        style={{
+                          background: '#FEE2E2', border: '1px solid #FECACA', cursor: 'pointer',
+                          color: '#DC2626', padding: '4px 10px', borderRadius: 7,
+                          fontSize: 11, fontWeight: 700, lineHeight: 1,
+                        }}
+                      >Excluir</button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {selected && (
